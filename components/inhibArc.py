@@ -1,81 +1,126 @@
 from main import inhibList
-from place import Place
-from transition import Transition
+import place
+import transition
 
 class InhibArc:
 
-    def __init__(self, name: str, fromTrans: Transition, toPlace: Place, multiplicity: int = 1):
+    def __init__(self, name: str, origin: transition.Transition | place.Place, target: transition.Transition | place.Place, multiplicity: int = 1):
         if (checkName(name)):
-            self.name = name #name of the arc, recommended format: {Origin trans name}{Target place name}Arc ie. WaitServiceArc
-            self.fromTrans = fromTrans #reference of origin Transition TODO: might change it to name and perform search in transList
-            self.toPlace = toPlace #reference of target Place TODO: might change it to name and perform search in placeList
-            self.multiplicity = multiplicity #multiplicity of arc
+            self.name = name                    # name of the arc, recommended format: {Origin trans/place name}{Target trans/place name}Arc ie. WaitServiceArc
+            if(isinstance(origin, place.Place)):      # TODO: make similar for transition
+                origin.addOutBoundInhibArcs(self)
+            self.origin = origin                # reference of origin Transition or Place TODO: might change it to name and perform search in lists
+            if(isinstance(target, place.Place)):       # TODO: make similar for transition
+                target.addInBoundInhibArcs(self)
+            self.target = target                # reference of target Transition or Place TODO: might change it to name and perform search in lists
+            self.multiplicity = multiplicity    # multiplicity of arc
 
-            outputEdgeList.append(self)
+            inhibList.append(self)
 
         else:
             del self
-            raise Exception("Output arc already exists named: " + name)
+            raise Exception("Inhibitor arc already exists named: " + name)
 
     def __str__(self):
-        return f'Output arc (name={self.name}, from Transition={self.fromTrans.name}, to Place={self.toPlace.name}, multiplicity={self.multiplicity}'
+        returnString = f'Inhibitor arc (name={self.name}, '
+        if(isinstance(self.origin, transition.Transition)):
+            returnString += f'from Transition={self.origin.name}, '
+        elif(isinstance(self.origin, place.Place)):
+            returnString += f'from Place={self.origin.name}, '
+        
+        if(isinstance(self.target, transition.Transition)):
+            returnString += f'to Transition={self.target.name}, '
+        elif(isinstance(self.target, place.Place)):
+            returnString += f'from Place={self.target.name}, '
+
+        returnString += f'multiplicity={self.multiplicity}'
+
+        return returnString
 
     def setName(self, newName: str):
         if (checkName(newName)):
             self.name = newName
         else:
-            raise Exception("An Output arc already exists named: " + newName)
+            raise Exception("An Inhibitor arc already exists named: " + newName)
 
     def getName(self):
         return self.name
-    
-    def setFromTrans(self, fromTrans: Transition):
-        self.fromTrans = fromTrans
 
-    def getFromTrans(self):
-        return self.fromTrans
-
-    def setToPlace(self, toPlace: Place):
-        self.toPlace = toPlace
-    
-    def getToPlace(self):
-        return self.toPlace
-    
     def setMultiplicity(self, multiplicity: int):
         self.multiplicity = multiplicity
     
     def getMultiplicity(self):
         return self.multiplicity
+    
+
+    def setOrigin(self, newOrigin: transition.Transition | place.Place):
+        self.origin.outBoundInhibArcs.remove(self)  # remove reference to inhibitor from old origin's outbound inhibitor list
+        if(isinstance(newOrigin, place.Place)):            # TODO: make similar to transition
+            newOrigin.addOutBoundInhibArcs(self)
+        self.origin = newOrigin
+
+    def getOrigin(self):
+        return self.origin
+
+    def setTarget(self, newTarget: transition.Transition | place.Place):
+        self.target.inBoundInhibArcs.remove(self)  # remove reference to inhibitor from old target's inbound inhibitor list
+        if(isinstance(newTarget, place.Place)):           # TODO: make similar to transition
+            newTarget.addInBoundInhibArcs(self)
+        self.target = newTarget
+
+    def getTarget(self):
+        return self.target
+
 
 
 def checkName(name):
-    for outputEdge in outputEdgeList:
-        if (outputEdge.name == name):
+    for inhibEdge in inhibList:
+        if (inhibEdge.name == name):
             return False
     return True
 
-def findOutputEdgeByName(name):
-    for outputEdge in outputEdgeList:
-        if (outputEdge.name == name):
-            return outputEdge
-    raise Exception('Output arc does not exists with name: ' + name)
+def findInhibEdgeByName(name):
+    for inhibEdge in inhibList:
+        if (inhibEdge.name == name):
+            return inhibEdge
+    raise Exception('Inhibitor arc does not exists with name: ' + name)
 
 
 def setName(edgeName: str, newName: str):
-    outputEdge = findOutputEdgeByName(edgeName)
+    inhibEdge = findInhibEdgeByName(edgeName)
     if (checkName(newName)):
-        outputEdge.name = newName
+        inhibEdge.name = newName
     else:
-        raise Exception("An Output arc already exists named: " + newName)
+        raise Exception("An Inhibitor arc already exists named: " + newName)
     
-def setFromPlace(edgeName: str, fromTrans: Transition):
-    outputEdge = findOutputEdgeByName(edgeName)
-    outputEdge.fromTrans = fromTrans
-
-def setTokens(edgeName: str, toPlace: Place):
-    outputEdge = findOutputEdgeByName(edgeName)
-    outputEdge.toPlace = toPlace
+def getName(edgeName: str):
+    inhibEdge = findInhibEdgeByName(edgeName)
+    return inhibEdge.name
     
 def setMultiplicity(edgeName: str, multiplicity: int):
-    outputEdge = findOutputEdgeByName(edgeName)
-    outputEdge.multiplicity = multiplicity
+    inhibEdge = findInhibEdgeByName(edgeName)
+    inhibEdge.multiplicity = multiplicity
+
+def getMultiplicity(edgeName: str):
+    inhibEdge = findInhibEdgeByName(edgeName)
+    return inhibEdge.multiplicity
+
+def setOrigin(edgeName: str, newOrigin: transition.Transition | place.Place):
+    inhibEdge = findInhibEdgeByName(edgeName)
+    if(isinstance(newOrigin, place.Place)):            # TODO: make similar to transition
+        newOrigin.addOutBoundInhibArcs(inhibEdge)
+    inhibEdge.origin = newOrigin
+
+def getOrigin(edgeName: str):
+    inhibEdge = findInhibEdgeByName(edgeName)
+    return inhibEdge.origin
+
+def setTarget(edgeName: str, newTarget: transition.Transition | place.Place):
+    inhibEdge = findInhibEdgeByName(edgeName)
+    if(isinstance(newTarget, place.Place)):            # TODO: make similar to transition
+        newTarget.addOutBoundInhibArcs(inhibEdge)
+    inhibEdge.target = newTarget
+
+def getTarget(edgeName: str):
+    inhibEdge = findInhibEdgeByName(edgeName)
+    return inhibEdge.target

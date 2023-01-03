@@ -1,5 +1,5 @@
-from components.place import *
 from main import *
+from components.place import *
 
 
 print('1 item')

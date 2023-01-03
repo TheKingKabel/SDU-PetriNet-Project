@@ -1,10 +1,10 @@
 from main import outputEdgeList
-from place import Place
-from transition import Transition
+import place
+import transition
 
 class OutputArc:
 
-    def __init__(self, name: str, fromTrans: Transition, toPlace: Place, multiplicity: int = 1):
+    def __init__(self, name: str, fromTrans: transition.Transition, toPlace: place.Place, multiplicity: int = 1):
         if (checkName(name)):
             self.name = name #name of the arc, recommended format: {Origin trans name}{Target place name}Arc ie. WaitServiceArc
             self.fromTrans = fromTrans #reference of origin Transition TODO: might change it to name and perform search in transList
@@ -29,13 +29,13 @@ class OutputArc:
     def getName(self):
         return self.name
     
-    def setFromTrans(self, fromTrans: Transition):
+    def setFromTrans(self, fromTrans: transition.Transition):
         self.fromTrans = fromTrans
 
     def getFromTrans(self):
         return self.fromTrans
 
-    def setToPlace(self, toPlace: Place):
+    def setToPlace(self, toPlace: place.Place):
         self.toPlace = toPlace
 
     def getToPlace(self):
@@ -72,7 +72,7 @@ def getName(edgeName: str):
     outputEdge = findOutputEdgeByName(edgeName)
     return outputEdge.name
     
-def setFromTrans(edgeName: str, fromTrans: Transition):
+def setFromTrans(edgeName: str, fromTrans: transition.Transition):
     outputEdge = findOutputEdgeByName(edgeName)
     outputEdge.fromTrans = fromTrans
 
@@ -80,7 +80,7 @@ def getFromTrans(edgeName: str):
     outputEdge = findOutputEdgeByName(edgeName)
     return outputEdge.fromTrans
 
-def setToPlace(edgeName: str, toPlace: Place):
+def setToPlace(edgeName: str, toPlace: place.Place):
     outputEdge = findOutputEdgeByName(edgeName)
     outputEdge.toPlace = toPlace
 

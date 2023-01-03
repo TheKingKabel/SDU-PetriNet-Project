@@ -1,7 +1,4 @@
-from components.inhibArc import InhibArc
-from components.inputArc import InputArc
-from components.outputArc import OutputArc
-from main import placeList
+import inputArc
 
 class Place:
 
@@ -74,7 +71,7 @@ class Place:
     def getMaxTokens(self):
         return self.maxTokens
 
-    def setOutBoundInputArcs(self, *outBoundInputArcList: InputArc):
+    def setOutBoundInputArcs(self, *outBoundInputArcList: inputArc.InputArc):
         self.outBoundInputArcs.clear
         for arc in outBoundInputArcList:
             self.outBoundInputArcs.append(arc)
@@ -82,11 +79,11 @@ class Place:
     def getOutBoundInputArcs(self):
         return self.outBoundInputArcs
 
-    def addOutBoundInputArcs(self, arc: InputArc):
+    def addOutBoundInputArcs(self, arc: inputArc.InputArc):
         self.outBoundInputArcs.append(arc)
     
     
-    def setInBoundOutPutArcs(self, *inBoundOutPutArcList: OutputArc):
+    def setInBoundOutPutArcs(self, *inBoundOutPutArcList: outputArc.OutputArc):
         self.inBoundOutPutArcs.clear
         for arc in inBoundOutPutArcList:
             self.inBoundOutPutArcs.append(arc)
@@ -94,11 +91,11 @@ class Place:
     def setInBoundOutPutArcs(self):
         return self.inBoundOutPutArcs
 
-    def addInBoundOutPutArcs(self, arc: OutputArc):
+    def addInBoundOutPutArcs(self, arc: outputArc.OutputArc):
         self.inBoundOutPutArcs.append(arc)
 
     
-    def setOutBoundInhibArcs(self, *outBoundInhibArcList: InhibArc):
+    def setOutBoundInhibArcs(self, *outBoundInhibArcList: inhibArc.InhibArc):
         self.outBoundInhibArcs.clear
         for arc in outBoundInhibArcList:
             self.outBoundInhibArcs.append(arc)
@@ -106,11 +103,11 @@ class Place:
     def getOutBoundInhibArcs(self):
         return self.outBoundInhibArcs
 
-    def addOutBoundInhibArcs(self, arc: InhibArc):
+    def addOutBoundInhibArcs(self, arc: inhibArc.InhibArc):
         self.outBoundInhibArcs.append(arc)
 
 
-    def setInBoundInhibArcs(self, *inBoundInhibArcList: InhibArc):
+    def setInBoundInhibArcs(self, *inBoundInhibArcList: inhibArc.InhibArc):
         self.inBoundInhibArcs.clear
         for arc in inBoundInhibArcList:
             self.inBoundInhibArcs.append(arc)
@@ -118,7 +115,7 @@ class Place:
     def getInBoundInhibArcs(self):
         return self.inBoundInhibArcs
 
-    def addInBoundInhibArcs(self, arc: InhibArc):
+    def addInBoundInhibArcs(self, arc: inhibArc.InhibArc):
         self.inBoundInhibArcs.append(arc)
 
 def checkName(name):
@@ -177,7 +174,7 @@ def getMaxTokens(placeName: str):
     place = findPlaceByName(placeName)
     return place.maxTokens
 
-def setOutBoundInputArcs(placeName: str, *outBoundInputArcList: InputArc):
+def setOutBoundInputArcs(placeName: str, *outBoundInputArcList: inputArc.InputArc):
     place = findPlaceByName(placeName)
     place.outBoundInputArcs.clear
     for arc in outBoundInputArcList:
@@ -187,6 +184,10 @@ def getOutBoundInputArcs(placeName: str):
     place = findPlaceByName(placeName)
     return place.outBoundInputArcs
 
-def addOutBoundInputArcs(placeName: str, arc: InputArc):
+def addOutBoundInputArcs(placeName: str, arc: inputArc.InputArc):
     place = findPlaceByName(placeName)
     place.outBoundInputArcs.append(arc)
+
+from main import placeList
+import inhibArc
+import outputArc
