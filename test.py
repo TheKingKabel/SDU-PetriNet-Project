@@ -1,6 +1,7 @@
 from components.place import *
 from main import *
 
+
 print('1 item')
 
 Place('start', True, 3, 5, 3)
@@ -34,6 +35,11 @@ print('should throw error')
 
 #setStart('second', True) error
 
+getPlaces()
+
+newPlace = Place("test", False)
+getPlaces()
+newPlace.tokens = 1
 getPlaces()
 
 

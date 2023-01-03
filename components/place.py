@@ -1,29 +1,45 @@
+from components.inhibArc import InhibArc
+from components.inputArc import InputArc
+from components.outputArc import OutputArc
 from main import placeList
 
 class Place:
 
     def __init__(self, name: str, start: bool=False, tokens: int=0, totalTokens: int=0, maxTokens: int=0):
         if (checkName(name)):
-            self.name = name #name of the place
-            self.start = start #start place, default false
-            self.tokens = tokens #nbr of initial tokens, default 0, if set, totalTokens and maxTokens get the same value
+            self.name = name                    # name of the place, must be unique
+            self.start = start                  # start place, default false, used to determine start of simulation
+            self.tokens = tokens                # nbr of initial tokens, default 0, if set, totalTokens and maxTokens get the same value
             if (tokens == 0):
-                self.totalTokens = totalTokens #var used to count the total number of tokens in place, default 0
+                self.totalTokens = totalTokens  # var used to count the total number of tokens in place for statistics, default 0
             else:
                 self.totalTokens = tokens
             if (tokens == 0):
-                self.maxTokens = maxTokens # var used to count the maximum tokens in place, default 0
+                self.maxTokens = maxTokens      # var used to count the maximum tokens in place for statistics, default 0
             else:
                 self.maxTokens = tokens
-
+            self.outBoundInputArcs = []         # list of outbound input arcs originating from current place
+            self.inBoundOutPutArcs = []         # list of inbound output arcs targeting the current place
+            self.outBoundInhibArcs = []         # list of outbound inhibitor arcs originating from current place
+            self.inBoundInhibArcs = []          # list of inbound inhibitor arcs taregting the current place
             placeList.append(self)
 
         else:
             del self
-            raise Exception("A Place already exists named: " + name)
+            raise Exception("A Place already exists named: " + name) # places must have a uniqe name to differentiate
 
     def __str__(self):
-        return f'Place (name={self.name}, start place={self.start}, current nbr of tokens={self.tokens}, total tokens held={self.totalTokens}, max tokens held={self.maxTokens}'
+        return (
+            f'Place (name={self.name}, \
+            start place={self.start}, \
+            current nbr of tokens={self.tokens}, \
+            total tokens held={self.totalTokens}, \
+            max tokens held={self.maxTokens}, \
+            list of outbound input arcs={str(self.outBoundInputArcs)}, \
+            list of inbound output arcs={str(self.inBoundOutPutArcs)}, \
+            list of outbound inhibitor arcs={str(self.outBoundInhibArcs)}, \
+            list of inbound inhibitor arcs={str(self.outBoundInhibArcs)}'
+            )
 
     def setName(self, newName: str):
         if (checkName(newName)):
@@ -57,6 +73,53 @@ class Place:
 
     def getMaxTokens(self):
         return self.maxTokens
+
+    def setOutBoundInputArcs(self, *outBoundInputArcList: InputArc):
+        self.outBoundInputArcs.clear
+        for arc in outBoundInputArcList:
+            self.outBoundInputArcs.append(arc)
+    
+    def getOutBoundInputArcs(self):
+        return self.outBoundInputArcs
+
+    def addOutBoundInputArcs(self, arc: InputArc):
+        self.outBoundInputArcs.append(arc)
+    
+    
+    def setInBoundOutPutArcs(self, *inBoundOutPutArcList: OutputArc):
+        self.inBoundOutPutArcs.clear
+        for arc in inBoundOutPutArcList:
+            self.inBoundOutPutArcs.append(arc)
+    
+    def setInBoundOutPutArcs(self):
+        return self.inBoundOutPutArcs
+
+    def addInBoundOutPutArcs(self, arc: OutputArc):
+        self.inBoundOutPutArcs.append(arc)
+
+    
+    def setOutBoundInhibArcs(self, *outBoundInhibArcList: InhibArc):
+        self.outBoundInhibArcs.clear
+        for arc in outBoundInhibArcList:
+            self.outBoundInhibArcs.append(arc)
+    
+    def getOutBoundInhibArcs(self):
+        return self.outBoundInhibArcs
+
+    def addOutBoundInhibArcs(self, arc: InhibArc):
+        self.outBoundInhibArcs.append(arc)
+
+
+    def setInBoundInhibArcs(self, *inBoundInhibArcList: InhibArc):
+        self.inBoundInhibArcs.clear
+        for arc in inBoundInhibArcList:
+            self.inBoundInhibArcs.append(arc)
+    
+    def getInBoundInhibArcs(self):
+        return self.inBoundInhibArcs
+
+    def addInBoundInhibArcs(self, arc: InhibArc):
+        self.inBoundInhibArcs.append(arc)
 
 def checkName(name):
     for place in placeList:
@@ -113,3 +176,17 @@ def setMaxTokens(placeName: str, maxTokens: int):
 def getMaxTokens(placeName: str):
     place = findPlaceByName(placeName)
     return place.maxTokens
+
+def setOutBoundInputArcs(placeName: str, *outBoundInputArcList: InputArc):
+    place = findPlaceByName(placeName)
+    place.outBoundInputArcs.clear
+    for arc in outBoundInputArcList:
+        place.outBoundInputArcs.append(arc)
+    
+def getOutBoundInputArcs(placeName: str):
+    place = findPlaceByName(placeName)
+    return place.outBoundInputArcs
+
+def addOutBoundInputArcs(placeName: str, arc: InputArc):
+    place = findPlaceByName(placeName)
+    place.outBoundInputArcs.append(arc)
