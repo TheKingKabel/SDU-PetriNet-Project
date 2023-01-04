@@ -1,4 +1,7 @@
+from main import placeList
 import inputArc
+import inhibArc
+import outputArc
 
 class Place:
 
@@ -187,7 +190,3 @@ def getOutBoundInputArcs(placeName: str):
 def addOutBoundInputArcs(placeName: str, arc: inputArc.InputArc):
     place = findPlaceByName(placeName)
     place.outBoundInputArcs.append(arc)
-
-from main import placeList
-import inhibArc
-import outputArc
