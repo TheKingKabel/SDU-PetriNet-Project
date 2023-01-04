@@ -1,10 +1,11 @@
 from main import inhibList
 import place
-import transition
+import timedTransition
+import instantTransition
 
 class InhibArc:
 
-    def __init__(self, name: str, origin: transition.Transition | place.Place, target: transition.Transition | place.Place, multiplicity: int = 1):
+    def __init__(self, name: str, origin: timedTransition.TimedTransition | place.Place | instantTransition.InstantTransition, target: timedTransition.TimedTransition | place.Place | instantTransition.InstantTransition, multiplicity: int = 1):
         if (checkName(name)):
             self.name = name                    # name of the arc, recommended format: {Origin trans/place name}{Target trans/place name}Arc ie. WaitServiceArc
             if(isinstance(origin, place.Place)):      # TODO: make similar for transition
@@ -23,12 +24,12 @@ class InhibArc:
 
     def __str__(self):
         returnString = f'Inhibitor arc (name={self.name}, '
-        if(isinstance(self.origin, transition.Transition)):
+        if(isinstance(self.origin, timedTransition.TimedTransition | instantTransition.InstantTransition)):
             returnString += f'from Transition={self.origin.name}, '
         elif(isinstance(self.origin, place.Place)):
             returnString += f'from Place={self.origin.name}, '
         
-        if(isinstance(self.target, transition.Transition)):
+        if(isinstance(self.target, timedTransition.TimedTransition | instantTransition.InstantTransition)):
             returnString += f'to Transition={self.target.name}, '
         elif(isinstance(self.target, place.Place)):
             returnString += f'from Place={self.target.name}, '
@@ -53,7 +54,7 @@ class InhibArc:
         return self.multiplicity
     
 
-    def setOrigin(self, newOrigin: transition.Transition | place.Place):
+    def setOrigin(self, newOrigin: timedTransition.TimedTransition | place.Place | instantTransition.InstantTransition):
         self.origin.outBoundInhibArcs.remove(self)  # remove reference to inhibitor from old origin's outbound inhibitor list
         if(isinstance(newOrigin, place.Place)):            # TODO: make similar to transition
             newOrigin.addOutBoundInhibArcs(self)
@@ -62,7 +63,7 @@ class InhibArc:
     def getOrigin(self):
         return self.origin
 
-    def setTarget(self, newTarget: transition.Transition | place.Place):
+    def setTarget(self, newTarget: timedTransition.TimedTransition | place.Place | instantTransition.InstantTransition):
         self.target.inBoundInhibArcs.remove(self)  # remove reference to inhibitor from old target's inbound inhibitor list
         if(isinstance(newTarget, place.Place)):           # TODO: make similar to transition
             newTarget.addInBoundInhibArcs(self)
@@ -105,7 +106,7 @@ def getMultiplicity(edgeName: str):
     inhibEdge = findInhibEdgeByName(edgeName)
     return inhibEdge.multiplicity
 
-def setOrigin(edgeName: str, newOrigin: transition.Transition | place.Place):
+def setOrigin(edgeName: str, newOrigin: timedTransition.TimedTransition | place.Place | instantTransition.InstantTransition):
     inhibEdge = findInhibEdgeByName(edgeName)
     if(isinstance(newOrigin, place.Place)):            # TODO: make similar to transition
         newOrigin.addOutBoundInhibArcs(inhibEdge)
@@ -115,7 +116,7 @@ def getOrigin(edgeName: str):
     inhibEdge = findInhibEdgeByName(edgeName)
     return inhibEdge.origin
 
-def setTarget(edgeName: str, newTarget: transition.Transition | place.Place):
+def setTarget(edgeName: str, newTarget: timedTransition.TimedTransition | place.Place | instantTransition.InstantTransition):
     inhibEdge = findInhibEdgeByName(edgeName)
     if(isinstance(newTarget, place.Place)):            # TODO: make similar to transition
         newTarget.addOutBoundInhibArcs(inhibEdge)

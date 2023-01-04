@@ -1,7 +1,8 @@
 
 placeList = []
 
-transList = []
+timedTransList = []
+instantTransList = []
 
 inputEdgeList = []
 outputEdgeList = []
@@ -11,9 +12,13 @@ def getPlaces():
     for place in placeList:
         print(place)
 
-def getTransitions():
-    for trans in transList:
-        print(trans)
+def getTimedTransitions():
+    for timedTrans in timedTransList:
+        print(timedTrans)
+
+def getInstantTransitions():
+    for instantTrans in instantTransList:
+        print(instantTrans)
 
 def getInputEdges():
     for inputEdge in inputEdgeList:

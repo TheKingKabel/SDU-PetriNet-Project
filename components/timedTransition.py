@@ -1,6 +1,6 @@
-from main import transList
+from main import timedTransList
 
-class Transition:
+class TimedTransition:
 
     def __init__(self, name: str, distType, agePolicy, enabled: bool = True, fireCount: int = 0):
         if (checkName(name)):
@@ -12,20 +12,20 @@ class Transition:
 
             #TODO: other arguments?
 
-            transList.append(self)
+            timedTransList.append(self)
 
         else:
             del self
-            raise Exception("A Transition already exists named: " + name)
+            raise Exception("A Timed Transition already exists named: " + name)
 
     def __str__(self):
-        return f'Transition (name={self.name}, distribution type={self.distType}, enabled={self.enabled}, times fired={self.fireCount}'
+        return f'Timed Transition (name={self.name}, distribution type={self.distType}, enabled={self.enabled}, times fired={self.fireCount}'
 
     def setName(self, newName: str):
         if (checkName(newName)):
             self.name = newName
         else:
-            raise Exception("A Transition already exists named: " + newName)
+            raise Exception("A Timed Transition already exists named: " + newName)
 
     def getName(self):
         return self.name
@@ -55,16 +55,16 @@ class Transition:
         return self.fireCount
 
 def checkName(name):
-    for trans in transList:
+    for trans in timedTransList:
         if (trans.name == name):
             return False
     return True
 
 def findTransitionByName(name):
-    for trans in transList:
+    for trans in timedTransList:
         if (trans.name == name):
             return trans
-    raise Exception('Transition does not exists with name: ' + name)
+    raise Exception('A Timed Transition does not exists with name: ' + name)
 
 
 def setName(transName: str, newName: str):
@@ -72,7 +72,7 @@ def setName(transName: str, newName: str):
     if (checkName(newName)):
         trans.name = newName
     else:
-        raise Exception("A Transition already exists named: " + newName)
+        raise Exception("A Timed Transition already exists named: " + newName)
 
 def getName(transName: str):
     trans = findTransitionByName(transName)

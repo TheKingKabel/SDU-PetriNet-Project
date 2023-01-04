@@ -1,9 +1,11 @@
 from main import inputEdgeList
-import transition
+import place
+import timedTransition
+import instantTransition
 
 class InputArc:
 
-    def __init__(self, name: str, fromPlace: place.Place, toTrans: transition.Transition, multiplicity: int = 1):
+    def __init__(self, name: str, fromPlace: place.Place, toTrans: timedTransition.TimedTransition | instantTransition.InstantTransition, multiplicity: int = 1):
         if (checkName(name)):
             self.name = name #name of the arc, recommended format: {Origin place name}{Target transition name}Arc ie. QueueWaitArc
             self.fromPlace = fromPlace #reference of origin Place TODO: might change it to name and perform search in placeList
@@ -34,7 +36,7 @@ class InputArc:
     def getFromPlace(self):
         return self.fromPlace
 
-    def setToTrans(self, toTrans: transition.Transition):
+    def setToTrans(self, toTrans: timedTransition.TimedTransition | instantTransition.InstantTransition):
         self.toTrans = toTrans
 
     def getToTrans(self):
@@ -79,7 +81,7 @@ def getFromPlace(edgeName: str):
     inputEdge = findInputEdgeByName(edgeName)
     return inputEdge.fromPlace
 
-def setTokens(edgeName: str, toTrans: transition.Transition):
+def setTokens(edgeName: str, toTrans: timedTransition.TimedTransition | instantTransition.InstantTransition):
     inputEdge = findInputEdgeByName(edgeName)
     inputEdge.toTrans = toTrans
 
@@ -94,5 +96,3 @@ def setMultiplicity(edgeName: str, multiplicity: int):
 def getMultiplicity(edgeName: str):
     inputEdge = findInputEdgeByName(edgeName)
     return inputEdge.multiplicity
-
-import place

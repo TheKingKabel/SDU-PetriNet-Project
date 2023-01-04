@@ -1,5 +1,6 @@
 from main import *
 from components.place import *
+from components.outputArc import *
 
 
 print('1 item')
