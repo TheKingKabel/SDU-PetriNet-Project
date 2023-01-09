@@ -8,11 +8,15 @@ from main import *
 
 
 T_Enter = TimedTransition("T_Enter","normal","race")
-Queue = Place("Queue")                                        # Test: set tokens to 2
+Queue = Place("Queue")                                                          # Test: set tokens to 2
+
+print(checkType(T_Enter))
+print(T_Enter.__class__.__name__)
+
 T_EnterQueueTrans = OutputArc("T_EnterQueueTrans", T_Enter, Queue)
 T_Wait = InstantTransition("T_Wait")
 QueueT_WaitTrans =InputArc("QueueT_WaitTrans", Queue, T_Wait)
-Service = Place("Service")                                    # Test: set tokens to 1
+Service = Place("Service")                                                      # Test: set tokens to 1
 T_WaitServiceInhib = InhibArc("WaitBlock", Service, T_Wait)
 T_WaitServiceTrans = OutputArc("T_WaitServiceTrans", T_Wait, Service)
 T_Service = TimedTransition("T_Service", "normal", "race")

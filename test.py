@@ -42,5 +42,3 @@ newPlace = Place("test", False)
 getPlaces()
 newPlace.tokens = 1
 getPlaces()
-
-
