@@ -1,32 +1,58 @@
-from main import timedTransList
+from PetriNet import timedTransList
+
 
 class TimedTransition:
 
-    def __init__(self, name: str, distType, agePolicy, start: bool = False, enabled: bool = True, fireCount: int = 0):
+    def __init__(self, name: str, distType, agePolicy, guard: str = None, fireCount: int = 0):
         '''
         Create an instance of the Timed Transition class.
         @param name: Unique name of the Timed Transition, must be string
         @param distType: Distribution type of random firings of the Timed Transition, must be chosen from predetermined enumeration         TODO: implement enumeration, define default
         @param agePolicy: Setting to able/disable race age of Timed Transition, must be chosen from predetermined enumeration               TODO: implement enumeration, define default
-        @param start: Variable used to mark starting point of Petri Net, must be boolean                                                    TODO: implement PN net / chain depth detection?
-        @param enabled: Variable used to update enabled status of Timed Transition, must be boolean                                         TODO: remove from constructor, it's updated automatically
+        @param guard: Condition for Timed Transition to be enabled for firing, must be assessable logic statement in string, i.e. "Queue.tokens >= 1"
         @param fireCount: Variable used to count the number of firings of Timed Transition for statistics, must be integer
         '''
         if (checkName(name)):
-            self.name = name                                                                        # name of the timed transition
-            self.distType = distType                                                                # type of distribution                  TODO: implement, check type?
-            self.enabled = enabled                                                                  # transition enabled for firing, default: true
-            self.agePolicy = agePolicy                                                              # age policy setting of transition      TODO: implement race anabled/disabled, check type?
-            self.fireCount = fireCount                                                              # number of times transition has fired, default 0
-            self.start = start                                                                      # mark starting point of PN net
+            # name of the Immediate Transition, must be unique
+            self.name = name
 
-            self.outBoundOutputArcs = []                                                            # list of outbound output arcs originating from current timed transition
-            self.inBoundInputArcs = []                                                              # list of inbound input arcs targeting the current timed transition
-            self.outBoundInhibArcs = []                                                             # list of outbound inhibitor arcs originating from current timed transition
-            self.inBoundInhibArcs = []                                                              # list of inbound inhibitor arcs targeting the current timed transition
+            # type of distribution                  TODO: implement
+            self.distType = distType
 
-            #TODO: other arguments?
+            # age policy setting of transition      TODO: implement race enabled/disabled
+            self.agePolicy = agePolicy
 
+            # set guard function if correctly specified, set to None if not applicable
+            if(guard is not None):
+                try:
+                    eval(guard)
+                except:
+                    del self
+                    raise Exception(
+                        "The guard function added to Timed Transition named: " + name + " is invalid")
+                else:
+                    # set guard function
+                    self.guard = guard
+            else:
+                # guard is not specified
+                self.guard = guard
+
+            # number of times Timed Transition has fired, default 0
+            self.fireCount = fireCount
+
+            # Timed Transition enabled for firing, default: False, to be overwritten during simulation
+            self.enabled = False
+
+            # list of Input Arcs targeting the current Timed Transition
+            self.inputArcs = []
+
+            # list of Output Arcs originating from current Timed Transition
+            self.outputArcs = []
+
+            # list of inbound Inhibitor Arcs targeting the current Timed Transition
+            self.inhibArcs = []
+
+            # add Timed Transition to PN's Timed Transition list
             timedTransList.append(self)
 
         else:
@@ -37,7 +63,18 @@ class TimedTransition:
         '''
         Default return value of class, gives description of current state of Timed Transition.
         '''
-        return f'Timed Transition (name={self.name}, distribution type={self.distType}, enabled={self.enabled}, times fired={self.fireCount}'
+        returnString = (
+            f"Timed Transition (name={self.name}, "
+            f"with distribution type={self.distType}, "
+            f"with guard function={self.guard}, "
+            f"currently enabled={self.enabled}, "
+            f"age policy={self.agePolicy}, "
+            f"times fired={self.fireCount}, "
+            f"list of targeting Input Arcs={str(self.inputArcs)}, "
+            f"list of originating Output Arcs={str(self.outputArcs)}, "
+            f"list of targeting Inhibitor Arcs={str(self.inhibArcs)}, "
+        )
+        return returnString
 
     # NAME
     def setName(self, newName: str):
@@ -48,7 +85,8 @@ class TimedTransition:
         if (checkName(newName)):
             self.name = newName
         else:
-            raise Exception("A Timed Transition already exists named: " + newName)
+            raise Exception(
+                "A Timed Transition already exists named: " + newName)
 
     def getName(self):
         '''
@@ -56,7 +94,7 @@ class TimedTransition:
         Returns current name of Timed Transition.
         '''
         return self.name
-    
+
     # DIST TYPE
     def setDistType(self, distType):
         '''
@@ -72,37 +110,6 @@ class TimedTransition:
         '''
         return self.distType
 
-    # ENABLE
-    def setEnable(self, enabled: bool):
-        '''
-        Setter function for enable variable of Timed Transition.
-        @param enabled: New value for enable variable of Timed Transition, must be boolean
-        Note: value is dynamically updated during simulation.
-        '''
-        self.enabled = enabled
-
-    def getEnable(self):
-        '''
-        Getter function for enable variable of Timed Transition.
-        Returns current enable variable of Timed Transition.
-        '''
-        return self.enabled
-
-    # START
-    def setStart(self, start: bool):
-        '''
-        Setter function for start variable of Timed Transition.
-        @param start: New value for start variable of Timed Transition, must be boolean
-        '''
-        self.start = start
-
-    def getStart(self):
-        '''
-        Getter function for start variable of Timed Transition.
-        Returns current start variable of Timed Transition.
-        '''
-        return self.start
-
     # AGE POLICY
     def setAgePolicy(self, agePolicy):
         '''
@@ -117,7 +124,31 @@ class TimedTransition:
         Returns current age policy of Timed Transition.
         '''
         return self.agePolicy
-    
+
+    # GUARD
+    def setGuard(self, guard: str):
+        '''
+        Setter function for guard condition of Timed Transition.
+        @param guard: New guard condition for Timed Transition to enable firing, must be assessable logic statement in string, i.e. "Queue.tokens >= 1"
+        '''
+        if(guard is not None):
+            try:
+                eval(guard)
+            except:
+                raise Exception(
+                    "The guard condition set for Timed Transition must be valid")
+            else:
+                self.guard = guard
+        else:
+            self.guard = guard
+
+    def getGuard(self):
+        '''
+        Getter function for guard condition of Timed Transition.
+        Returns current guard condition of Timed Transition.
+        '''
+        return self.guard
+
     # FIRE COUNT
     def setFireCount(self, fireCount: int):
         '''
@@ -133,144 +164,118 @@ class TimedTransition:
         '''
         return self.fireCount
 
-    # INBOUND INPUT ARCS
-    def setInBoundInputArcs(self, *inBoundInputArcList):
+    # INPUT ARCS
+    def setInputArcs(self, *inputArcList):
         '''
-        Setter function to overwrite inbound input arcs targeting current Timed Transition.
-        Note: this function deletes existing list of inbound input arcs, and creates new list with the given parameters. To add single new Input Arc to Timed Transition's inbound Input Arc list, use addInBoundInputArcs.
-        @param *inBoundInputArcList: New tuple of Input Arcs to be added to Timed Transition's inbound Input Arc list, must be a tuple of instances of class Input Arc
+        Setter function to overwrite Input Arcs targeting current Timed Transition.
+        Note: this function deletes existing list of Input Arcs, and creates new list with the given Input Arcs. To add single new Input Arc to Timed Transition's Input Arc list, use addInputArc.
+        @param *inputArcList: New tuple of Input Arcs to be added to Timed Transition's Input Arc list, must be a tuple of instances of class Input Arc
         '''
-        for arc in inBoundInputArcList:
+        for arc in inputArcList:
             if(checkType(arc) != "InputArc"):
-                raise Exception("Timed Transition's new inbound Input Arc list's elements must be instances of class Input Arc")
-        self.inBoundInputArcs.clear
-        for arc in inBoundInputArcList:
+                raise Exception(
+                    "Timed Transition's new Input Arc list's elements must be instances of class Input Arc")
+        self.inputArcs.clear
+        for arc in inputArcList:
             arc.setToTrans(self)
-            self.inBoundInputArcs.append(arc)
-    
-    def getInBoundInputArcs(self):
-        '''
-        Getter function for list of inbound input arcs targeting current Timed Transition.
-        Returns current list of inbound input arcs targeting current Timed Transition.
-        '''
-        return self.inBoundInputArcs
+            self.inputArcs.append(arc)
 
-    def addInBoundInputArcs(self, newInBoundInputArc):
+    def getInputArcs(self):
         '''
-        Setter function to add new inbound input arc targeting current Timed Transition, to Timed Transition's inbound Input Arc list.
-        Note: this function adds one new Input Arc to the Timed Transition's inbound Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInBoundInputArcs.
-        @param newInBoundInputArc: New Input Arc to be added to Timed Transition's inbound Input Arc list, must be instance of class Input Arc
+        Getter function for list of Input Arcs targeting current Timed Transition.
+        Returns current list of Input Arcs targeting current Timed Transition.
         '''
-        if(checkType(newInBoundInputArc) != "InputArc"):
-            raise Exception("Timed Transition's new inbound Input Arc must be instance of class Input Arc")
-        newInBoundInputArc.setToTrans(self)
-        self.inBoundInputArcs.append(newInBoundInputArc)
-    
-    # OUTBOUND OUTPUT ARCS
-    def setOutBoundOutputArcs(self, *outBoundOutputArcList):
+        return self.inputArcs
+
+    def addInputArc(self, newInputArc):
         '''
-        Setter function to overwrite outbound output arcs originating from current Timed Transition.
-        Note: this function deletes existing list of outbound output arcs, and creates new list with the given parameters. To add single new Output Arc to Timed Transition's outbound Output Arc list, use addOutBoundOutputArcs.
-        @param *outBoundOutputArcList: New tuple of Output Arcs to be added to Timed Transition's outbound Output Arc list, must be a tuple of instances of class Output Arc
+        Setter function to add new Input Arc targeting current Timed Transition, to Timed Transition's Input Arc list.
+        Note: this function adds one new Input Arc to the Timed Transition's Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInputArcs.
+        @param newInputArc: New Input Arc to be added to Timed Transition's Input Arc list, must be instance of class Input Arc
         '''
-        for arc in outBoundOutputArcList:
+        if(checkType(newInputArc) != "InputArc"):
+            raise Exception(
+                "Timed Transition's new Input Arc must be instance of class Input Arc")
+        newInputArc.setToTrans(self)
+        self.inputArcs.append(newInputArc)
+
+    # OUTPUT ARCS
+    def setOutputArcs(self, *outputArcList):
+        '''
+        Setter function to overwrite Output Arcs originating from current Timed Transition.
+        Note: this function deletes existing list of Output Arcs, and creates new list with the given Output Arcs. To add single new Output Arc to Timed Transition's Output Arc list, use addOutputArc.
+        @param *outputArcList: New tuple of Output Arcs to be added to Timed Transition's Output Arc list, must be a tuple of instances of class Output Arc
+        '''
+        for arc in outputArcList:
             if(checkType(arc) != "OutputArc"):
-                raise Exception("Timed Transition's new outbound Output Arc list's elements must be instances of class Output Arc")
-        self.outBoundOutputArcs.clear
-        for arc in outBoundOutputArcList:
+                raise Exception(
+                    "Timed Transition's new Output Arc list's elements must be instances of class Output Arc")
+        self.outputArcs.clear
+        for arc in outputArcList:
             arc.setFromTrans(self)
-            self.outBoundOutputArcs.append(arc)
-    
-    def getOutBoundOutputArcs(self):
-        '''
-        Getter function for list of outbound output arcs originating from current Timed Transition.
-        Returns current list of outbound output arcs originating from current Timed Transition.
-        '''
-        return self.outBoundOutputArcs
+            self.outputArcs.append(arc)
 
-    def addOutBoundOutputArcs(self, newOutBoundOutputArc):
+    def getOutputArcs(self):
         '''
-        Setter function to add new outbound output arc originating from current Timed Transition, to Timed Transition's outbound Output Arc list.
-        Note: this function adds one new Output Arc to the Timed Transition's outbound Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutBoundOutputArcs.
-        @param newOutBoundOutputArc: New Output Arc to be added to Timed Transition's outbound Output Arc list, must be instance of class Output Arc
+        Getter function for list of Output Arcs originating from current Timed Transition.
+        Returns current list of Output Arcs originating from current Timed Transition.
         '''
-        if(checkType(newOutBoundOutputArc) != "OutputArc"):
-            raise Exception("Timed Transition's new outbound Output Arc must be instance of class Output Arc")
-        newOutBoundOutputArc.setFromTrans(self)
-        self.outBoundOutputArcs.append(newOutBoundOutputArc)
+        return self.outputArcs
 
-    # OUTBOUND INHIB ARCS
-    def setOutBoundInhibArcs(self, *outBoundInhibArcList):
+    def addOutputArc(self, newOutputArc):
         '''
-        Setter function to overwrite outbound inhibitor arcs originating from current Timed Transition.
-        Note: this function deletes existing list of outbound inhibitor arcs, and creates new list with the given parameters. To add single new Inhibitor Arc to Timed Transition's outbound Inhibitor Arc list, use addOutBoundInhibArcs.
-        @param *outBoundInhibArcList: New tuple of Inhibitor Arcs to be added to Timed Transition's outbound Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc
+        Setter function to add new Output Arc originating from current Timed Transition, to Timed Transition's Output Arc list.
+        Note: this function adds one new Output Arc to the Timed Transition's Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutputArcs.
+        @param newOutputArc: New Output Arc to be added to Timed Transition's Output Arc list, must be instance of class Output Arc
         '''
-        for arc in outBoundInhibArcList:
+        if(checkType(newOutputArc) != "OutputArc"):
+            raise Exception(
+                "Timed Transition's new Output Arc must be instance of class Output Arc")
+        newOutputArc.setFromTrans(self)
+        self.outputArcs.append(newOutputArc)
+
+    # INHIB ARCS
+    def setInhibArcs(self, *inhibArcList):
+        '''
+        Setter function to overwrite Inhibitor Arcs targeting current Timed Transition.
+        Note: this function deletes existing list of Inhibitor Arcs, and creates new list with the given Inhibitor Arcs. To add single new Inhibitor Arc to Timed Transition's Inhibitor Arc list, use addInhibArc.
+        @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Timed Transition's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc
+        '''
+        for arc in inhibArcList:
             if(checkType(arc) != "InhibArc"):
-                raise Exception("Timed Transition's new outbound Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
-        self.outBoundInhibArcs.clear
-        for arc in outBoundInhibArcList:
-            arc.setOrigin(self)
-            self.outBoundInhibArcs.append(arc)
-    
-    def getOutBoundInhibArcs(self):
-        '''
-        Getter function for list of outbound inhibitor arcs originating from current Timed Transition.
-        Returns current list of outbound inhibitor arcs originating from current Timed Transition.
-        '''
-        return self.outBoundInhibArcs
-
-    def addOutBoundInhibArcs(self, newOutBoundInhibArc):
-        '''
-        Setter function to add new outbound inhibitor arc originating from current Timed Transition, to Timed Transition's outbound Inhibitor Arc list.
-        Note: this function adds one new Inhibitor Arc to the Timed Transition's outbound Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setOutBoundInhibArcs.
-        @param newOutBoundInhibArc: New Inhibitor Arc to be added to Timed Transition's outbound Inhibitor Arc list, must be instance of class Inhibitor Arc
-        '''
-        if(checkType(newOutBoundInhibArc) != "InhibArc"):
-            raise Exception("Timed Transition's new outbound Inhibitor Arc must be instance of class Inhibitor Arc")
-        newOutBoundInhibArc.setOrigin(self)
-        self.outBoundInhibArcs.append(newOutBoundInhibArc)
-
-    # INBOUND INHIB ARCS
-    def setInBoundInhibArcs(self, *inBoundInhibArcList):
-        '''
-        Setter function to overwrite inbound inhibitor arcs targeting current Timed Transition.
-        Note: this function deletes existing list of inbound inhibitor arcs, and creates new list with the given parameters. To add single new Inhibitor Arc to Timed Transition's inbound Inhibitor Arc list, use addInBoundInhibArcs.
-        @param *inBoundInhibArcList: New tuple of Inhibitor Arcs to be added to Timed Transition's inbound Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc
-        '''
-        for arc in inBoundInhibArcList:
-            if(checkType(arc) != "InhibArc"):
-                raise Exception("Timed Transition's new inbound Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
-        self.inBoundInhibArcs.clear
-        for arc in inBoundInhibArcList:
+                raise Exception(
+                    "Timed Transition's new Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
+        self.inhibArcs.clear
+        for arc in inhibArcList:
             arc.setTarget(self)
-            self.inBoundInhibArcs.append(arc)
-    
-    def getInBoundInhibArcs(self):
-        '''
-        Getter function for list of inbound inhibitor arcs targeting current Timed Transition.
-        Returns current list of inbound inhibitor arcs targeting current Timed Transition.
-        '''
-        return self.inBoundInhibArcs
+            self.inhibArcs.append(arc)
 
-    def addInBoundInhibArcs(self, newInBoundInhibArc):
+    def getInhibArcs(self):
         '''
-        Setter function to add new inbound inhibitor arc targeting current Timed Transition, to Timed Transition's inbound Inhibitor Arc list.
-        Note: this function adds one new Inhibitor Arc to the Timed Transition's inbound Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInBoundInhibArcs.
-        @param newInBoundInhibArc: New Inhibitor Arc to be added to Timed Transition's inbound Inhibitor Arc list, must be instance of class Inhibitor Arc
+        Getter function for list of Inhibitor Arcs targeting current Timed Transition.
+        Returns current list of Inhibitor Arcs targeting current Timed Transition.
         '''
-        if(checkType(newInBoundInhibArc) != "InhibArc"):
-            raise Exception("Timed Transition's new inbound Inhibitor Arc must be instance of class Inhibitor Arc")
-        newInBoundInhibArc.setTarget(self)
-        self.inBoundInhibArcs.append(newInBoundInhibArc)
-    
+        return self.inhibArcs
+
+    def addInhibArc(self, newInhibArc):
+        '''
+        Setter function to add new Inhibitor Arc targeting current Timed Transition, to Timed Transition's Inhibitor Arc list.
+        Note: this function adds one new Inhibitor Arc to the Timed Transition's Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInhibArcs.
+        @param newInhibArc: New Inhibitor Arc to be added to Timed Transition's Inhibitor Arc list, must be instance of class Inhibitor Arc
+        '''
+        if(checkType(newInhibArc) != "InhibArc"):
+            raise Exception(
+                "Timed Transition's new Inhibitor Arc must be instance of class Inhibitor Arc")
+        newInhibArc.setTarget(self)
+        self.inhibArcs.append(newInhibArc)
+
 
 def checkName(name):
     for trans in timedTransList:
         if (trans.name == name):
             return False
     return True
+
 
 def findTransitionByName(name):
     for trans in timedTransList:
@@ -279,49 +284,5 @@ def findTransitionByName(name):
     raise Exception('A Timed Transition does not exists with name: ' + name)
 
 
-def setName(transName: str, newName: str):
-    trans = findTransitionByName(transName)
-    if (checkName(newName)):
-        trans.name = newName
-    else:
-        raise Exception("A Timed Transition already exists named: " + newName)
-
 def checkType(object):
     return object.__class__.__name__
-
-
-# def getName(transName: str):
-#     trans = findTransitionByName(transName)
-#     return trans.name
-    
-# def setDistType(transName: str, distType):
-#     trans = findTransitionByName(transName)
-#     trans.distType = distType
-
-# def getDistType(transName: str):
-#     trans = findTransitionByName(transName)
-#     return trans.distType
-
-# def setAgePolicy(transName: str, agePolicy):
-#     trans = findTransitionByName(transName)
-#     trans.agePolicy = agePolicy
-
-# def getAgePolicy(transName: str):
-#     trans = findTransitionByName(transName)
-#     return trans.agePolicy
-
-# def setEnabled(transName: str, enabled: bool):
-#     trans = findTransitionByName(transName)
-#     trans.enabled = enabled
-
-# def getEnabled(transName: str):
-#     trans = findTransitionByName(transName)
-#     return trans.enabled
-
-# def setFireCount(transName: str, fireCount: int):
-#     trans = findTransitionByName(transName)
-#     trans.fireCount = fireCount
-
-# def getFireCount(transName: str):
-#     trans = findTransitionByName(transName)
-#     return trans.fireCount

@@ -1,5 +1,6 @@
 from main import inputEdgeList
 
+
 class InputArc:
 
     def __init__(self, name: str, fromPlace, toTrans, multiplicity: int = 1):
@@ -7,48 +8,56 @@ class InputArc:
         Create an instance of the Input Arc class.
         @param name: Unique name of the Input Arc, must be string
         @param fromPlace: Origin place of the Input Arc, must be instance of class Place
-        @param toTrans: Target transition of the Input Arc, must be instance of class Timed Transition or Instant Transition
+        @param toTrans: Target transition of the Input Arc, must be instance of class Timed Transition or Immediate Transition
         @param multiplicity: Multiplicity of the Input Arc, must be integer
         '''
         if (checkName(name)):
-            self.name = name                                                    # name of the arc, recommended format: {Origin name}{Target name}Arc ie. WaitServiceArc
-            
-            if(checkType(fromPlace) == "Place"):                                # Adding reference of Input Arc to Origin's outbound Input Arc list
-                self.fromPlace = fromPlace                                      # reference of origin Place TODO: might change it to name and perform search in placeList
-                fromPlace.addOutBoundInputArcs(self)
-            else:
-                del self
-                raise Exception("Input arc's fromPlace parameter must be instance of class Place")
-            
-            if(checkType(toTrans) == "TimedTransition"):     # Adding reference of Input Arc to Target's inbound Input Arc list
-                self.toTrans = toTrans
-                toTrans.addInBoundInputArcs(self)
-            elif(checkType(toTrans) == "InstantTransition"):
-                self.toTrans = toTrans
-                toTrans.addInBoundInputArcs(self)
-            else:
-                del self
-                raise Exception("Input arc's toTrans parameter must be instance of class Timed Transition or Instant Transition")
-            
-            self.multiplicity = multiplicity                                    # multiplicity of arc
+            # name of the Arc, recommended format: {Origin name}{Target name}Arc ie. WaitServiceArc
+            self.name = name
 
-            inputEdgeList.append(self)                                          # append to list of current PN net of input arcs
+            # Adding reference of Input Arc to origin Place's Input Arc list
+            if(checkType(fromPlace) == "Place"):
+                # reference of origin Place TODO: might change it to name and perform search in placeList
+                self.fromPlace = fromPlace
+                fromPlace.addInputArcs(self)
+            else:
+                del self
+                raise Exception(
+                    "Input Arc's fromPlace parameter must be instance of class Place")
+
+            # Adding reference of Input Arc to target Transition's Input Arc list
+            if(checkType(toTrans) == "TimedTransition"):
+                self.toTrans = toTrans
+                toTrans.addInputArcs(self)
+            elif(checkType(toTrans) == "ImmediateTransition"):
+                self.toTrans = toTrans
+                toTrans.addInputArcs(self)
+            else:
+                del self
+                raise Exception(
+                    "Input Arc's toTrans parameter must be instance of class Timed Transition or Immediate Transition")
+
+            # multiplicity of Arc
+            self.multiplicity = multiplicity
+
+            # append to list of current PN net of input Arcs
+            inputEdgeList.append(self)
 
         else:
             del self
-            raise Exception("Input arc already exists named: " + name)
+            raise Exception("Input Arc already exists named: " + name)
 
     def __str__(self):
         '''
         Default return value of class, gives description of current state of Input Arc.
         '''
-        returnString = f'Input arc (name={self.name}, '                         # Print name of Input Arc
-        returnString += f'from Place={self.fromPlace.name}, '                   # Print name of origin Place
-        if(checkType(self.toTrans) == "TimedTransition"):    # Print name of target Transition
+        returnString = f'Input Arc (name={self.name}, '
+        returnString += f'from Place={self.fromPlace.name}, '
+        if(checkType(self.toTrans) == "TimedTransition"):
             returnString += f'to Timed Transition={self.toTrans.name}, '
-        elif(checkType(self.toTrans) == "InstantTransition"):
+        elif(checkType(self.toTrans) == "ImmediateTransition"):
             returnString += f'to Immediate Transition={self.toTrans.name}, '
-        returnString += f'multiplicity={self.multiplicity}'                     # Print multiplicity of Input arc
+        returnString += f'multiplicity={self.multiplicity}'
 
         return returnString
 
@@ -61,15 +70,15 @@ class InputArc:
         if (checkName(newName)):
             self.name = newName
         else:
-            raise Exception("An Input arc already exists named: " + newName)
+            raise Exception("An Input Arc already exists named: " + newName)
 
     def getName(self):
         '''
-        Getter function for name of Input arc.
+        Getter function for name of Input Arc.
         Returns current name of Input Arc.
         '''
         return self.name
-    
+
     # FROM PLACE
     def setFromPlace(self, fromPlace):
         '''
@@ -77,16 +86,19 @@ class InputArc:
         @param fromPlace: New origin place for Input Arc, must be instance of class Place
         '''
         if(checkType(fromPlace) == "Place"):
-            if self in self.fromPlace.outBoundInputArcs:
-                self.fromPlace.outBoundInputArcs.remove(self)                     # remove reference to input arc from old origin place's outbound Input Arc list
-            fromPlace.addOutBoundInputArcs(self)                              # add reference to input arc to new origin place's outbound Input Arc list
+            if self in self.fromPlace.inputArcs:
+                # remove reference to input Arc from old origin Place's Input Arc list
+                self.fromPlace.inputArcs.remove(self)
+            # add reference to input Arc to new origin Place's Input Arc list
+            fromPlace.addInputArcs(self)
         else:
-            raise Exception("Input arc's new origin place parameter must be instance of class Place")
+            raise Exception(
+                "Input Arc's new origin place parameter must be instance of class Place")
         self.fromPlace = fromPlace
 
     def getFromPlace(self):
         '''
-        Getter function for origin place of Input arc.
+        Getter function for origin place of Input Arc.
         Returns current origin place of Input Arc.
         '''
         return self.fromPlace
@@ -95,27 +107,32 @@ class InputArc:
     def setToTrans(self, toTrans):
         '''
         Setter function for target transition of Input Arc.
-        @param toTrans: New target transition for Input Arc, must be instance of class Timed Transition of Instant Transition
+        @param toTrans: New target transition for Input Arc, must be instance of class Timed Transition of Immediate Transition
         '''
         if(checkType(toTrans) == "TimedTransition"):
-            if self in self.toTrans.inBoundInputArcs:
-                self.toTrans.inBoundInputArcs.remove(self)                        # remove reference to input arc from old target timed transition's inbound Input Arc list
-            toTrans.addInBoundInputArcs(self)                                 # add reference to input arc to new target timed transition's inbound Input Arc list
-        elif(checkType(toTrans) == "InstantTransition"):
-            if self in self.toTrans.inBoundInputArcs:
-                self.toTrans.inBoundInputArcs.remove(self)                        # remove reference to input arc from old target instant transition's inbound Input Arc list
-            toTrans.addInBoundInputArcs(self)                                 # add reference to input arc to new target instant transition's inbound Input Arc list
+            if self in self.toTrans.inputArcs:
+                # remove reference to input Arc from old target Timed Transition's Input Arc list
+                self.toTrans.inputArcs.remove(self)
+            # add reference to input Arc to new target Timed Transition's Input Arc list
+            toTrans.addInputArcs(self)
+        elif(checkType(toTrans) == "ImmediateTransition"):
+            if self in self.toTrans.inputArcs:
+                # remove reference to input Arc from old target Immediate Transition's Input Arc list
+                self.toTrans.inputArcs.remove(self)
+            # add reference to input Arc to new target Immediate Transition's Input Arc list
+            toTrans.addInputArcs(self)
         else:
-            raise Exception("Input arc's new target transition parameter must be instance of class Timed Transition of Instant Transition")
+            raise Exception(
+                "Input Arc's new target transition parameter must be instance of class Timed Transition of Immediate Transition")
         self.toTrans = toTrans
 
     def getToTrans(self):
         '''
-        Getter function for target transition of Input arc.
+        Getter function for target transition of Input Arc.
         Returns current target transition of Input Arc.
         '''
         return self.toTrans
-    
+
     # MULTIPLICITY
     def setMultiplicity(self, multiplicity: int):
         '''
@@ -138,47 +155,13 @@ def checkName(name):
             return False
     return True
 
+
 def findInputEdgeByName(name):
     for inputEdge in inputEdgeList:
         if (inputEdge.name == name):
             return inputEdge
-    raise Exception('Input arc does not exists with name: ' + name)
+    raise Exception('Input Arc does not exists with name: ' + name)
+
 
 def checkType(object):
     return object.__class__.__name__
-
-
-# def setName(edgeName: str, newName: str):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     if (checkName(newName)):
-#         inputEdge.name = newName
-#     else:
-#         raise Exception("An Input arc already exists named: " + newName)
-
-# def getName(edgeName: str):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     return inputEdge.name
-    
-# def setFromPlace(edgeName: str, fromPlace: 'Place'):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     inputEdge.fromPlace = fromPlace
-
-# def getFromPlace(edgeName: str):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     return inputEdge.fromPlace
-
-# def setTokens(edgeName: str, toTrans: 'TimedTransition' | 'InstantTransition'):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     inputEdge.toTrans = toTrans
-
-# def getTokens(edgeName: str):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     return inputEdge.tokens
-    
-# def setMultiplicity(edgeName: str, multiplicity: int):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     inputEdge.multiplicity = multiplicity
-
-# def getMultiplicity(edgeName: str):
-#     inputEdge = findInputEdgeByName(edgeName)
-#     return inputEdge.multiplicity
