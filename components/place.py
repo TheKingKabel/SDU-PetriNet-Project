@@ -1,75 +1,87 @@
-from PetriNet import placeList
-
 
 class Place:
 
-    def __init__(self, name: str, tokens: int = 0, totalTokens: int = 0, maxTokens: int = 0):
+    def __init__(self, name: str, petriNet, tokens: int = 0, totalTokens: int = 0, maxTokens: int = 0):
         '''
         Create an instance of the Place class.
-        @param name: Unique name of the Place, must be string
+        @param name: Name of the Place, must be string, must be unique in assigned Petri Net
+        @param petriNet: Reference of parent Petri Net element for Place to be assigned to, must be instance of class PetriNet
         @param tokens: Current number of tokens held by Place, must be integer
         @param totalTokens: Total number of tokens held by Place for statistics, must be integer        TODO: remove from constructor, it's updated automatically
         @param maxTokens: Maximum number of tokens held by Place for statistics, must be integer        TODO: remove from constructor, it's updated automatically
         '''
-        if (checkName(name)):
-            # name of the Place, must be unique
-            self.name = name
+        if(checkType(petriNet) == "PetriNet"):
+            # reference of Petri Net consisting current Place
+            self.petriNet = petriNet
 
-            # number of initial tokens, default 0, if set, totalTokens and maxTokens get the same value
-            self.tokens = tokens
+            if (checkName(petriNet, name)):
+                # name of the Place
+                self.name = name
 
-            if (tokens == 0):
-                # variable to count the total number of tokens in Place for statistics, default 0
+                # number of initial tokens, default 0
+                self.tokens = tokens
+
+                # variable to count the total number of tokens in Place for statistics, default 0 TODO: implement automatic updating during simulation
                 self.totalTokens = totalTokens
-            else:
-                self.totalTokens = tokens
-            if (tokens == 0):
-                # variable to count the maximum tokens in Place for statistics, default 0
+
+                # variable to count the maximum tokens in Place for statistics, default 0 TODO: implement automatic updating during simulation
                 self.maxTokens = maxTokens
+
+                # list of Input Arcs originating from current Place
+                self.inputArcs = []
+
+                # list of Output Arcs targeting the current Place
+                self.outputArcs = []
+
+                # list of Inhibitor Arcs originating from current Place
+                self.inhibArcs = []
+
+                # add Place to PN's Place list
+                petriNet.placeList.append(self)
+
             else:
-                self.maxTokens = tokens
-
-            # list of Input Arcs originating from current Place
-            self.inputArcs = []
-
-            # list of Output Arcs targeting the current Place
-            self.outputArcs = []
-
-            # list of Inhibitor Arcs originating from current Place
-            self.inhibArcs = []
-
-            # add place to PN's Place list
-            placeList.append(self)
+                del self
+                raise Exception(
+                    "A Place already exists named: " + name + ", in Petri Net named: " + petriNet.name)
 
         else:
             del self
-            raise Exception("A Place already exists named: " + name)
+            raise Exception(
+                "Petri Net with name: " + petriNet + " does not exist!")
 
     def __str__(self):
         '''
         Default return value of class, gives description of current state of Place.
         '''
         returnString = (
-            f"Place (name={self.name}, "
-            f"current number of tokens={self.tokens}, "
-            f"total tokens held={self.totalTokens}, "
-            f"max tokens held={self.maxTokens}, "
-            f"list of originating Input Arcs={str(self.inputArcs)}, "
-            f"list of targeting Output Arcs={str(self.outputArcs)}, "
-            f"list of originating Inhibitor Arcs={str(self.inhibArcs)}, "
-        )
+            f"Place (name: {self.name}, "
+            f"in Petri Net named: {self.petriNet.name}, "
+            f"current number of tokens: {self.tokens}, "
+            f"total tokens held: {self.totalTokens}, "
+            f"max tokens held: {self.maxTokens}, "
+            "list of originating Input Arcs: ")
+        for arc in self.inputArcs:
+            returnString += f"{str(arc)},\n"
+        returnString += "list of targeting Output Arcs: "
+        for arc in self.outputArcs:
+            returnString += f"{str(arc)},\n"
+        returnString += "list of originating Inhibitor Arcs: "
+        for arc in self.inhibArcs:
+            returnString += f"{str(arc)},\n"
+
         return returnString
 
     # NAME
     def setName(self, newName: str):
         '''
         Setter function for name of Place.
-        @param newName: Unique new name for Place, must be string
+        @param newName: New name for Place, must be string, must be unique in assigned Petri Net
         '''
-        if (checkName(newName)):
+        if (checkName(self.petriNet, newName)):
             self.name = newName
         else:
-            raise Exception("A Place already exists named: " + newName)
+            raise Exception(
+                "A Place already exists named: " + newName + ", in Petri Net named: " + self.petriNet.name)
 
     def getName(self):
         '''
@@ -128,15 +140,29 @@ class Place:
         '''
         Setter function to overwrite Input Arcs originating from current Place.
         Note: this function deletes existing list of Input Arcs, and creates new list with the given Input Arcs. To add single new Input Arc to Place's Input Arc list, use addInputArc.
-        @param *inputArcList: New tuple of Input Arcs to be added to Place's Input Arc list, must be a tuple of instances of class Input Arc
+        @param *inputArcList: New tuple of Input Arcs to be added to Place's Input Arc list, must be a tuple of instances of class Input Arc, Input Arcs must be assigned to same Petri Net instance
         '''
         for arc in inputArcList:
             if(checkType(arc) != "InputArc"):
                 raise Exception(
                     "Place's new Input Arc list's elements must be instances of class Input Arc")
-        self.inputArcs.clear
+            if(arc.petriNet != self.petriNet):
+                raise Exception(
+                    "Place's new Input Arc list's elements must be assigned to same Petri Net of Place!")
+
+        # cleanup of old input arcs
+        for arc in self.inputArcs:
+            # setting reference of their target Transition to None
+            arc.fromPlace = None
+
+        self.inputArcs.clear()
+
+        # setting new input arcs
         for arc in inputArcList:
-            arc.setFromPlace(self)
+            # removing references to arcs from old target's inputArcs list
+            if (arc.fromPlace is not None):
+                arc.fromPlace.inputArcs.remove(arc)
+            arc.fromPlace = self
             self.inputArcs.append(arc)
 
     def getInputArcs(self):
@@ -150,12 +176,18 @@ class Place:
         '''
         Setter function to add new Input Arc originating from current Place, to Place's Input Arc list.
         Note: this function adds one new Input Arc to the Place's Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInputArcs.
-        @param newInputArc: New Input Arc to be added to Place's Input Arc list, must be instance of class Input Arc
+        @param newInputArc: New Input Arc to be added to Place's Input Arc list, must be instance of class Input Arc, must be assigned to same Petri Net instance
         '''
         if(checkType(newInputArc) != "InputArc"):
             raise Exception(
                 "Place's new Input Arc must be instance of class Input Arc")
-        newInputArc.setFromPlace(self)
+        if(newInputArc.petriNet != self.petriNet):
+            raise Exception(
+                "Place's new Input Arc must be assigned to same Petri Net of Place!")
+
+        if (newInputArc.fromPlace is not None):
+            newInputArc.fromPlace.inputArcs.remove(newInputArc)
+        newInputArc.fromPlace = self
         self.inputArcs.append(newInputArc)
 
     # OUTPUT ARCS
@@ -163,15 +195,29 @@ class Place:
         '''
         Setter function to overwrite Output Arcs targeting current Place.
         Note: this function deletes existing list of Output Arcs, and creates new list with the given Output Arcs. To add single new Output Arc to Place's Output Arc list, use addOutputArcs.
-        @param *outputArcList: New tuple of Output Arcs to be added to Place's Output Arc list, must be a tuple of instances of class Output Arc
+        @param *outputArcList: New tuple of Output Arcs to be added to Place's Output Arc list, must be a tuple of instances of class Output Arc, Output Arcs must be assigned to same Petri Net instance
         '''
         for arc in outputArcList:
             if(checkType(arc) != "OutputArc"):
                 raise Exception(
                     "Place's new Output Arc list's elements must be instances of class Output Arc")
-        self.outputArcs.clear
+            if(arc.petriNet != self.petriNet):
+                raise Exception(
+                    "Place's new Output Arc list's elements must be assigned to same Petri Net of Place!")
+
+        # cleanup of old output arcs
+        for arc in self.outputArcs:
+            # setting reference of their origin Transition to None
+            arc.toPlace = None
+
+        self.outputArcs.clear()
+
+        # setting new output arcs
         for arc in outputArcList:
-            arc.setToPlace(self)
+            # removing references to arcs from old origin's outputArcs list
+            if (arc.toPlace is not None):
+                arc.toPlace.outputArcs.remove(arc)
+            arc.toPlace = self
             self.outputArcs.append(arc)
 
     def getOutputArcs(self):
@@ -185,12 +231,18 @@ class Place:
         '''
         Setter function to add new Output Arc targeting current Place, to Place's Output Arc list.
         Note: this function adds one new Output Arc to the Place's Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutputArcs.
-        @param newOutputArc: New Output Arc to be added to Place's Output Arc list, must be instance of class Output Arc
+        @param newOutputArc: New Output Arc to be added to Place's Output Arc list, must be instance of class Output Arc, must be assigned to same Petri Net instance
         '''
         if(checkType(newOutputArc) != "OutputArc"):
             raise Exception(
                 "Place's new Output Arc must be instance of class Output Arc")
-        newOutputArc.setToPlace(self)
+        if(newOutputArc.petriNet != self.petriNet):
+            raise Exception(
+                "Place's new Output Arc must be assigned to same Petri Net of Place!")
+
+        if (newOutputArc.toPlace is not None):
+            newOutputArc.toPlace.outputArcs.remove(newOutputArc)
+        newOutputArc.toPlace = self
         self.outputArcs.append(newOutputArc)
 
     # INHIB ARCS
@@ -198,15 +250,29 @@ class Place:
         '''
         Setter function to overwrite Inhibitor Arcs originating from current Place.
         Note: this function deletes existing list of Inhibitor Arcs, and creates new list with the given Inhibitor Arcs. To add single new Inhibitor Arc to Place's Inhibitor Arc list, use addInhibArc.
-        @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Place's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc
+        @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Place's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc, Inhibitor Arcs must be assigned to same Petri Net instance
         '''
         for arc in inhibArcList:
             if(checkType(arc) != "InhibArc"):
                 raise Exception(
                     "Place's new Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
-        self.inhibArcs.clear
+            if(arc.petriNet != self.petriNet):
+                raise Exception(
+                    "Place's new Inhibitor Arc list's elements must be assigned to same Petri Net of Place!")
+
+        # cleanup of old inhib arcs
+        for arc in self.inhibArcs:
+            # setting reference of their target Transition to None
+            arc.origin = None
+
+        self.inhibArcs.clear()
+
+        # setting new inhib arcs
         for arc in inhibArcList:
-            arc.setOrigin(self)
+            # removing references to arcs from old target's inhibArcs list
+            if (arc.origin is not None):
+                arc.origin.inhibArcs.remove(arc)
+            arc.origin = self
             self.inhibArcs.append(arc)
 
     def getInhibArcs(self):
@@ -220,27 +286,26 @@ class Place:
         '''
         Setter function to add new Inhibitor Arc originating from current Place, to Place's Inhibitor Arc list.
         Note: this function adds one new Inhibitor Arc to the Place's Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInhibArcs.
-        @param newInhibArc: New Inhibitor Arc to be added to Place's Inhibitor Arc list, must be instance of class Inhibitor Arc
+        @param newInhibArc: New Inhibitor Arc to be added to Place's Inhibitor Arc list, must be instance of class Inhibitor Arc, must be assigned to same Petri Net instance
         '''
         if(checkType(newInhibArc) != "InhibArc"):
             raise Exception(
                 "Place's new Inhibitor Arc must be instance of class Inhibitor Arc")
-        newInhibArc.setOrigin(self)
+        if(newInhibArc.petriNet != self.petriNet):
+            raise Exception(
+                "Place's new Inhibitor Arc must be assigned to same Petri Net of Place!")
+
+        if (newInhibArc.origin is not None):
+            newInhibArc.origin.inhibArcs.remove(newInhibArc)
+        newInhibArc.origin = self
         self.inhibArcs.append(newInhibArc)
 
 
-def checkName(name):
-    for place in placeList:
+def checkName(petriNet, name):
+    for place in petriNet.placeList:
         if (place.name == name):
             return False
     return True
-
-
-def findPlaceByName(name):
-    for place in placeList:
-        if (place.name == name):
-            return place
-    raise Exception('Place does not exists with name: ' + name)
 
 
 def checkType(object):
