@@ -1,18 +1,44 @@
+import random
+
 
 def runSimulation(PetriNet, verbose: int = 1,  defTimeUnit: str = sec):
+
+    globalTimer = 0
+
     # loop through all transitions and check if firing is enabled
-    checkEnabled()
+    enabledTransitions = []
+
+    enabledTransitions = checkEnabled(PetriNet)
+
+    random.shuffle(enabledTransitions)  # not needed?
+
+    randomEvent = random.choice(enabledTransitions)
+
     # generate random delay based on distribution type for all ENABLED Timed Transitions
-    generateDelay()
+    generateDelay()  # TODO: implement
 
     # make a list of enabled transitions, randomize their order and process them one by one (update, with checkEnabled() after every event)
-    processEvents()
+
+    while len(enabledTransitions) > 0:
+
+        processEvent(randomEvent)
+
+        enabledTransitions.clear()
+
+        enabledTransitions = checkEnabled(PetriNet)
+
+        random.shuffle(enabledTransitions)  # not needed?
+
+        randomEvent = random.choice(enabledTransitions)
 
     # increase global timer to reach the next firing
     increaseGlobalTimer()
 
 
 def checkEnabled(PetriNet):
+
+    enabledTransList = []
+
     for timedTrans in PetriNet.timedTransList:
 
         # default: enable all transitions, disable and iterate if does not meet requirements
@@ -43,6 +69,8 @@ def checkEnabled(PetriNet):
         if(jump):
             continue
 
+        enabledTransList.append(timedTrans)
+
     for immediateTrans in PetriNet.immediateTransList:
 
         # default: enable all transitions, disable and iterate if does not meet requirements
@@ -72,3 +100,23 @@ def checkEnabled(PetriNet):
                 break
         if(jump):
             continue
+
+        enabledTransList.append(immediateTrans)
+
+    return enabledTransList
+
+
+def processEvent(enabledTrans):
+
+    # remove tokens from input places according to arc multiplicity
+    for input in enabledTrans.inputArcs:
+        input.fromPlace.tokens -= input.multiplicity
+
+    # add tokens to output places according to arc multiplicity
+    for output in enabledTrans.outputArcs:
+        output.toPlace.tokens += output.multiplicity
+
+    # TODO: reset timer for timed transition
+
+
+def generateDelay(timedTrans):

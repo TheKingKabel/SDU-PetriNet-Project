@@ -1,44 +1,25 @@
-from main import *
-from components.place import *
-from components.outputArc import *
+from PetriNet import *
+import random
+import scipy as sp
 
+test = PetriNet("test")
 
-print('1 item')
+# testPlace = Place("test1", test, 5)
 
-Place('start', True, 3, 5, 3)
+# testTrans = TimedTransition("test1", test, "normal", "race")
 
-getPlaces()
+# InputArc("test1", test, testPlace, testTrans, testPlace.tokens)
 
-print('2 item')
+# testPlace.setTokens(10)
 
-Place('second')
+# # test.describe()
 
-getPlaces()
+# list1 = [1, 2, 3, 4, 5]
+# random.shuffle(list1)
+# print(sp.__version__)
 
-print('3 item + throw error')
+# testTimed = TimedTransition(asd, test, 'CAU', 'race')
 
-Place('problem')
-#Place('problem')
+asd = PetriNet('asdasd')
 
-getPlaces()
-
-print('3 item + changed values')
-
-setName('second', 'second_changed')
-setStart('start', False)
-setTokens('problem', 100)
-setTotalTokens('problem', 200)
-setMaxTokens('problem', 150)
-
-getPlaces()
-
-print('should throw error')
-
-#setStart('second', True) error
-
-getPlaces()
-
-newPlace = Place("test", False)
-getPlaces()
-newPlace.tokens = 1
-getPlaces()
+dsa = TimedTransition('asd', asd, 'NORM', 'race')

@@ -1,7 +1,9 @@
+from definitions.distribution_types import DistributionType
+
 
 class TimedTransition:
 
-    def __init__(self, name: str, petriNet, distType, agePolicy, guard: str = None, fireCount: int = 0):
+    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', agePolicy: bool = False, guard: str = None, fireCount: int = 0):
         '''
         Create an instance of the Timed Transition class.
         @param name: Name of the Timed Transition, must be string, must be unique in assigned Petri Net
@@ -20,7 +22,20 @@ class TimedTransition:
                 self.name = name
 
                 # type of distribution                  TODO: implement
-                self.distType = distType
+                disTypes = [member.name for member in DistributionType]
+
+                if(distType in disTypes):
+                    self.distType = distType
+                else:
+                    del self
+                    returnMsg = "The distribution type set for Timed Transition named: " + \
+                        name + " is not defined.\nSupported distribution types: "
+                    for member in DistributionType:
+                        returnMsg += '[' + member.name + \
+                            ": " + member.value + '], '
+                    raise Exception(
+                        returnMsg
+                    )
 
                 # age policy setting of transition      TODO: implement race enabled/disabled
                 self.agePolicy = agePolicy
