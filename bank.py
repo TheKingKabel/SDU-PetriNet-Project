@@ -1,10 +1,11 @@
 from PetriNet import *
+from simulation import runSimulation
 
 bank = PetriNet("bank")
 
-TEnter = TimedTransition("TEnter", bank, "normal", "race")
+TEnter = TimedTransition("TEnter", bank, "NORM")
 TWait = ImmediateTransition("TWait", bank)
-TService = TimedTransition("TService", bank, "normal", "race")
+TService = TimedTransition("TService", bank)
 
 PQueue = Place("PQueue", bank, 2)
 PService = Place("PService", bank)
@@ -17,5 +18,7 @@ INPPServiceTService = InputArc("INPPServiceTService", bank, PService, TService)
 
 INHPServiceTWait = InhibArc("INHPServiceTWait", bank, PService, TWait)
 
+
+runSimulation(bank, 5)
 
 bank.describe()

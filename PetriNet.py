@@ -27,38 +27,50 @@ class PetriNet:
         Describes the current state of the Petri Net instance.
         '''
         print("Places:\n")
-        self.getPlaces()
+        print(self.getPlaces())
         print("Timed Transitions:\n")
-        self.getTimedTransitions()
+        print(self.getTimedTransitions())
         print("Immediate Transitions:\n")
-        self.getImmediateTransitions()
+        print(self.getImmediateTransitions())
         print("Input Arcs:\n")
-        self.getInputArcs()
+        print(self.getInputArcs())
         print("Output Arcs:\n")
-        self.getOutputArcs()
+        print(self.getOutputArcs())
         print("Inhibitor Arcs:\n")
-        self.getInhibArcs()
+        print(self.getInhibArcs())
 
     def getPlaces(self):
+        returnString = ''
         for place in self.placeList:
-            print(place)
+            returnString += str(place) + '\n'
+        return returnString
 
     def getTimedTransitions(self):
+        returnString = ''
         for timedTrans in self.timedTransList:
-            print(timedTrans)
+            returnString += str(timedTrans) + '\n'
+        return returnString
 
     def getImmediateTransitions(self):
+        returnString = ''
         for immediateTrans in self.immediateTransList:
-            print(immediateTrans)
+            returnString += str(immediateTrans) + '\n'
+        return returnString
 
     def getInputArcs(self):
+        returnString = ''
         for inputArc in self.inputArcList:
-            print(inputArc)
+            returnString += str(inputArc) + '\n'
+        return returnString
 
     def getOutputArcs(self):
+        returnString = ''
         for outputArc in self.outputArcList:
-            print(outputArc)
+            returnString += str(outputArc) + '\n'
+        return returnString
 
     def getInhibArcs(self):
+        returnString = ''
         for inhibArc in self.inhibList:
-            print(inhibArc)
+            returnString += str(inhibArc) + '\n'
+        return returnString

@@ -3,7 +3,7 @@ from definitions.distribution_types import DistributionType
 
 class TimedTransition:
 
-    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', agePolicy: bool = False, guard: str = None, fireCount: int = 0):
+    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', distArgA=0.0, distArgB=1.0, distArgC=0.0, distArgD=0.0, agePolicy: bool = False, guard: str = None, fireCount: int = 0):
         '''
         Create an instance of the Timed Transition class.
         @param name: Name of the Timed Transition, must be string, must be unique in assigned Petri Net
@@ -61,6 +61,15 @@ class TimedTransition:
                 # Timed Transition enabled for firing, default: False, to be overwritten during simulation
                 self.enabled = False
 
+                # Delay for next firing, automatically generated during simulation, default None, if no enabled set to None
+                self.delay = None
+
+                # Distribution arguments TODO: change default value?
+                self.a = distArgA
+                self.b = distArgB
+                self.c = distArgC
+                self.d = distArgD
+
                 # list of Input Arcs targeting the current Timed Transition
                 self.inputArcs = []
 
@@ -91,8 +100,10 @@ class TimedTransition:
             f"Timed Transition (name: {self.name}, "
             f"in Petri Net named: {self.petriNet.name}, "
             f"with distribution type: {self.distType}, "
+            f"distribution arguments: {self.a}, {self.b}, {self.c}, {self.d}, "
             f"with guard function: {self.guard}, "
             f"currently enabled: {self.enabled}, "
+            f"current firing delay: {self.delay}, "
             f"age policy: {self.agePolicy}, "
             f"times fired: {self.fireCount}, "
             "list of targeting Input Arcs: ")

@@ -11,7 +11,8 @@ class DistributionType(Enum):
     F_D = "F-Distribution"
     CHI = "Chi-Square"
     EXP = "Exponential"
-    WEI = "Weibull"
+    WEI_MIN = "Weibull (Minimum Extreme Value)"
+    WEI_MAX = "Weibull (Maximum Extreme Value)"
     LOGN = "Lognormal"
     BI_SA = "Birnbaum-Saunders (Fatigue Life)"
     GAMMA = "Gamma"
@@ -19,70 +20,83 @@ class DistributionType(Enum):
     P_NORM = "Power Normal"
     P_LOGN = "Power Lognormal"
     TU_LAMBDA = "Tukey-Lambda"
-    EXT_VAL = "Extreme value Type 1"
+    GEV = "Generalized Extreme Value"
     BETA = "Beta"
-
     BIN = "Binomial"
     POI = "Poisson"
 
 
-def getDelay(distribution, delay: int = 0, a=0, b=0, c=0, d=0):
+def getDelay(distribution, a=0.0, b=1.0, c=0.0, d=0.0):
 
     if distribution == "NORM":
-        return np.random.normal(a, b)
+        # return np.random.normal(a, b)
+        return abs(sp.stats.norm.rvs(a, b))
 
     if distribution == "UNI":
-        return np.random.uniform(a, b)
+        # return np.random.uniform(a, b)
+        return abs(sp.stats.uniform.rvs(a, b))
 
     if distribution == "CAU":
-        return sp.stats.cauchy.rvs(a, b)
+        return abs(sp.stats.cauchy.rvs(a, b))
 
     if distribution == "T_D":
-        return sp.stats.t.rvs(a, b)
+        return abs(sp.stats.t.rvs(a, b))
 
-    # check
     if distribution == "F_D":
-        return np.random.noncentral_f(a, b, c)
+        # return np.random.noncentral_f(a, b, c)
+        return abs(sp.stats.f.rvs(a, b, c, d))
 
     if distribution == "CHI":
-        return np.random.chisquare(a)
+        # return np.random.chisquare(a)
+        return abs(sp.stats.chi2.rvs(a, b, c))
 
     if distribution == "EXP":
-        return np.random.exponential(a)
+        # return np.random.exponential(a)
+        return abs(sp.stats.expon.rvs(a, b))
 
-    if distribution == "WEI":
-        return np.random.weibull(a)
+    if distribution == "WEI_MIN":
+        # return np.random.weibull(a)
+        return abs(sp.stats.weibull_min.rvs(a, b, c))
+
+    if distribution == "WEI_MAX":
+        # return np.random.weibull(a)
+        return abs(sp.stats.weibull_max.rvs(a, b, c))
 
     if distribution == "LOGN":
-        return np.random.lognormal(a, b)
+        # return np.random.lognormal(a, b)
+        return abs(sp.stats.lognorm.rvs(a, b, c))
 
     if distribution == "BI_SA":
-        return sp.stats.fatiguelife(a, b, c)
+        return abs(sp.stats.fatiguelife.rvs(a, b, c))
 
     if distribution == "GAMMA":
-        return np.random.gamma(a, b)
+        # return np.random.gamma(a, b)
+        return abs(sp.stats.gamma.rvs(a, b, c))
 
     if distribution == "D_EXP":
-        return np.random.laplace(a, b)
+        # return np.random.laplace(a, b)
+        return abs(sp.stats.laplace.rvs(a, b))
 
     if distribution == "P_NORM":
-        return sp.stats.powernorm(a, b, c)
+        return abs(sp.stats.powernorm.rvs(a, b, c))
 
     if distribution == "P_LOGN":
-        return sp.stats.powerlognorm(a, b, c, d)
+        return abs(sp.stats.powerlognorm.rvs(a, b, c, d))
 
     if distribution == "TU_LAMBDA":
-        return sp.stats.tukeylambda(a, b, c)
+        return abs(sp.stats.tukeylambda.rvs(a, b, c))
 
-    # check
-    if distribution == "EXT_VAL":
-        return
+    if distribution == "GEV":
+        return abs(sp.stats.genextreme.rvs(a, b, c))
 
     if distribution == "BETA":
-        return np.random.beta(a, b)
+        # return np.random.beta(a, b)
+        return abs(sp.stats.beta.rvs(a, b, c, d))
 
     if distribution == "BIN":
-        return np.random.binomial(a, b)
+        # return np.random.binomial(a, b)
+        return abs(sp.stats.binom.rvs(a, b, c))
 
     if distribution == "POI":
-        return np.random.poisson(a)
+        # return np.random.poisson(a)
+        return abs(sp.stats.poisson.rvs(a, b))

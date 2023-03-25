@@ -1,6 +1,9 @@
 from PetriNet import *
 import random
+from simulation import runSimulation
+
 import scipy as sp
+import numpy as np
 
 test = PetriNet("test")
 
@@ -22,4 +25,16 @@ test = PetriNet("test")
 
 asd = PetriNet('asdasd')
 
-dsa = TimedTransition('asd', asd, 'NORM', 'race')
+dsa = TimedTransition('asd', asd, 'NORM', 0, 1)
+
+psad = TimedTransition('asdasdsa', asd, 'NORM', 1, 2.4)
+
+# runSimulation(asd, 5)
+
+scipy_num = sp.stats.norm.rvs(0.0, 1.0)
+print(scipy_num)
+print(scipy_num + 0.0)
+
+numpy_num = np.random.normal(0.0, 1.0)
+print(numpy_num)
+print(numpy_num + 0.0)
