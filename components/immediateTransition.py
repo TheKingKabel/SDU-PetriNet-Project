@@ -1,7 +1,7 @@
 
 class ImmediateTransition:
 
-    def __init__(self, name: str, petriNet, guard: str = None, fireProbability: float = 1.0, fireCount: int = 0):
+    def __init__(self, name: str, petriNet, guard=None, fireProbability: float = 1.0, fireCount: int = 0):
         '''
         Create an instance of the Immediate Transition class.
         @param name: Name of the Immediate Transition, must be string, must be unique in assigned Petri Net
@@ -20,15 +20,13 @@ class ImmediateTransition:
 
                 # set guard function if correctly specified, set to None if not applicable
                 if(guard is not None):
-                    try:
-                        eval(guard)
-                    except:
+                    if(checkType(guard()) == 'bool'):
+                        # set guard function
+                        self.guard = guard
+                    else:
                         del self
                         raise Exception(
                             "The guard function added to Immediate Transition named: " + name + " is invalid")
-                    else:
-                        # set guard function
-                        self.guard = guard
                 else:
                     # guard is not specified
                     self.guard = None
@@ -38,6 +36,9 @@ class ImmediateTransition:
 
                 # number of times Immediate Transition has fired, default 0
                 self.fireCount = fireCount
+
+                # previous number of times Immediate Transition has fired, initially same value as fireCount
+                self.prevFireCount = fireCount
 
                 # Immediate Transition enabled for firing, default: False, to be overwritten during simulation
                 self.enabled = False

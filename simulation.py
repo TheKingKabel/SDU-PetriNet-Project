@@ -12,11 +12,20 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
     now = datetime.now()
     dt_string = now.strftime("%Y-%m-%d-%H-%M-%S-%f")
 
-    filename = (
+    filename_txt = (
         filePath + 'sim_results/' + PetriNet.name + '_Simulation' + dt_string + '.txt')
-    os.makedirs(os.path.dirname(filename), exist_ok=True)
-    with open(filename, 'w') as f:
+    filename_csv = (
+        filePath + 'sim_results/' + PetriNet.name + '_Simulation' + dt_string + '.csv')
+    os.makedirs(os.path.dirname(filename_txt), exist_ok=True)
+    os.makedirs(os.path.dirname(filename_csv), exist_ok=True)
+    with open(filename_txt, 'w') as f:
         print(PetriNet.name + ' simulation results\n', file=f)
+    with open(filename_csv, 'w') as f:
+        print(PetriNet.name + ' simulation results\n', file=f)
+        svcString = 'Timestamp / Place'
+        for place in PetriNet.placeList:
+            svcString += ';' + place.name
+        print(svcString, file=f)
 
     random.seed(randomSeed)  # TODO: change seeding for each experiment
 
@@ -27,8 +36,14 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
     while globalTimer <= simLength:
 
         # log simulation events
-        with open(filename, 'a') as f:
+        with open(filename_txt, 'a') as f:
             print('Simulation time: ' + str(globalTimer), file=f)
+
+        with open(filename_csv, 'a') as f:
+            svcString = str(globalTimer)
+            for place in PetriNet.placeList:
+                svcString += ';' + str(place.tokens)
+            print(svcString, file=f)
 
         # loop through all transitions and check if firing is enabled
         enabledTransitions = []
@@ -43,10 +58,10 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
 
         # make a list of enabled transitions, randomize their order and process them one by one (update, with checkEnabled() after every event)
 
-        with open(filename, 'a') as f:
+        with open(filename_txt, 'a') as f:
             print('\tExecuted events:', file=f)
             if(len(enabledTransitions) == 0):
-                print('\tNone', file=f)
+                print('\tNone\n', file=f)
 
         eventCounter = 0
 
@@ -58,7 +73,7 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
 
             # process and log event
             eventCounter += 1
-            processEvent(eventCounter, randomEvent, filename, FEL)
+            processEvent(eventCounter, randomEvent, filename_txt, FEL)
 
             enabledTransitions.clear()
             enabledTimedTrans.clear()
@@ -74,15 +89,53 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
                 FELstring += '(' + str(event[0].name) + \
                     ', ' + str(event[1]) + '), '
             FELstring += '\n'
-            writeSimulationFile(FELstring, filename)
+            writeSimulationFile(FELstring, filename_txt)
 
         # log current state of Petri Net (after processed events)
+        currentStateString = "\tCurrent state of Petri Net (changes):\n"
+        for place in PetriNet.placeList:
+            currentStateString += "\t" + place.name + \
+                " tokens: " + str(place.tokens)
+            if place.prevTokens > place.tokens:
+                currentStateString += ' (change: ' + \
+                    str(place.tokens - place.prevTokens) + ')'
+                place.prevTokens = place.tokens
+            elif place.prevTokens < place.tokens:
+                currentStateString += ' (change: +' + \
+                    str(place.tokens - place.prevTokens) + ')'
+                place.prevTokens = place.tokens
+            currentStateString += '\n'
+        for trans in PetriNet.timedTransList:
+            currentStateString += "\t" + trans.name + \
+                " firings: " + str(trans.fireCount)
+            if trans.prevFireCount > trans.fireCount:
+                currentStateString += ' (change: ' + \
+                    str(trans.fireCount - trans.prevFireCount) + ')'
+                trans.prevFireCount = trans.fireCount
+            elif trans.prevFireCount < trans.fireCount:
+                currentStateString += ' (change: +' + \
+                    str(trans.fireCount - trans.prevFireCount) + ')'
+                trans.prevFireCount = trans.fireCount
+            currentStateString += '\n'
+        for trans in PetriNet.immediateTransList:
+            currentStateString += "\t" + trans.name + \
+                " firings: " + str(trans.fireCount)
+            if trans.prevFireCount > trans.fireCount:
+                currentStateString += ' (change: ' + \
+                    str(trans.fireCount - trans.prevFireCount) + ')'
+                trans.prevFireCount = trans.fireCount
+            elif trans.prevFireCount < trans.fireCount:
+                currentStateString += ' (change: +' + \
+                    str(trans.fireCount - trans.prevFireCount) + ')'
+                trans.prevFireCount = trans.fireCount
+            currentStateString += '\n'
+        writeSimulationFile(currentStateString, filename_txt)
 
         # generate random delay based on distribution type for all ENABLED Timed Transitions
         # generateDelay(enabledTimedTrans)  # TODO: implement
 
         # increase global timer to reach the next firing
-        #globalTimer += 1
+        # globalTimer += 1
         globalTimer = increaseGlobalTimer(FEL)
 
 
@@ -97,7 +150,7 @@ def checkEnabledImmediateTrans(PetriNet):
 
         # check for guard value
         if(immediateTrans.guard is not None):
-            if(eval(immediateTrans.guard) == False):
+            if(immediateTrans.guard() == False):
                 immediateTrans.enabled = False
                 continue
 
@@ -139,7 +192,7 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
 
         # check for guard value
         if(timedTrans.guard is not None):
-            if(eval(timedTrans.guard) == False):
+            if(timedTrans.guard() == False):
                 timedTrans.enabled = False
                 timedTrans.delay = None
                 continue

@@ -21,6 +21,9 @@ class Place:
                 # number of initial tokens, default 0
                 self.tokens = tokens
 
+                # previous number of tokens, initially same value as tokens
+                self.prevTokens = tokens
+
                 # variable to count the total number of tokens in Place for statistics, default 0 TODO: implement automatic updating during simulation
                 self.totalTokens = totalTokens
 
