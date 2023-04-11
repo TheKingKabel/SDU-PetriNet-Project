@@ -1,5 +1,4 @@
-from PetriNet import *
-from simulation import runSimulation
+from main.PetriNet import *
 
 hospital = PetriNet("Hospital")
 
@@ -21,7 +20,7 @@ def CantWaitGuard():
 
 CanWait = ImmediateTransition("CanWait", hospital, CanWaitGuard)
 CantWait = ImmediateTransition("CantWait", hospital, CantWaitGuard)
-Treatment = TimedTransition("Treatment", hospital, 'NORM', 2.0, 4.5)
+Treatment = TimedTransition("Treatment", hospital, 'NORM', 2.0, 6.0)
 
 OUTArrivalArrived = OutputArc(
     "OUTArrivalArrived", hospital, Arrival, Arrived)
@@ -38,6 +37,4 @@ INPWaitingRoomTreatment = InputArc(
 OUTTreatmentLeaveTreat = OutputArc(
     "OUTTreatmentLeaveTreat", hospital, Treatment, LeaveTreat)
 
-runSimulation(hospital, 60)
-
-hospital.describe()
+hospital.runSimulation(80)

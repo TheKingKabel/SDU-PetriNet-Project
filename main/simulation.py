@@ -4,11 +4,16 @@ from definitions.distribution_types import getDelay
 from datetime import datetime
 
 
-def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
 
+    # create folder structure (default: root/logs/)
     filePath = logPath + '/' + PetriNet.name + '/'
+
+    # create .pnml file of Petri Net
+    # TODO:
     makePetriNetFile(PetriNet, filePath)
 
+    # create simulation file (text log & csv), unique by adding current timestamp to filename
     now = datetime.now()
     dt_string = now.strftime("%Y-%m-%d-%H-%M-%S-%f")
 
@@ -27,71 +32,105 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
             svcString += ';' + place.name
         print(svcString, file=f)
 
-    random.seed(randomSeed)  # TODO: change seeding for each experiment
+    # set seed for random number generation
+    # TODO: change for each random() lib call?
+    random.seed(randomSeed)
 
+    # start global timer
     globalTimer = 0.0
 
+    # Future Event List, for logging purpose
     FEL = []
 
+    # discover and store references & probabilities for competing immediate transitions
+    competitiveTransList, competitiveProbabilities = checkCompetitiveTransitions(
+        PetriNet)
+
+    # iterate until simulation (global) timer does NOT reach defined time length
+    # TODO: make last iteration for last timestamp? (won't be changes compared to last iteration due to simulation execution logic)
     while globalTimer <= simLength:
 
-        # log simulation events
+        # start text file logging
         with open(filename_txt, 'a') as f:
             print('Simulation time: ' + str(globalTimer), file=f)
 
+        # log current marking to csv file
         with open(filename_csv, 'a') as f:
             svcString = str(globalTimer)
             for place in PetriNet.placeList:
                 svcString += ';' + str(place.tokens)
             print(svcString, file=f)
 
-        # loop through all transitions and check if firing is enabled
+        # lists to store enabled transitions to choose from at each simulation step (overwritten after every execution)
         enabledTransitions = []
         enabledTimedTrans = []
         enabledImmediateTrans = []
 
+        # separate list to store enabled competing events to choose from at each simulation step (overwritten after every execution)
+        enabledCompetingTransitions = []
+
         enabledTimedTrans, FEL = checkEnabledTimedTrans(
             PetriNet, globalTimer, FEL)
+
         enabledImmediateTrans = checkEnabledImmediateTrans(PetriNet)
 
-        enabledTransitions = enabledTimedTrans + enabledImmediateTrans
+        enabledCompetingTransitions = checkEnabledCompetingImmediateTrans(
+            competitiveTransList, competitiveProbabilities)
 
-        # make a list of enabled transitions, randomize their order and process them one by one (update, with checkEnabled() after every event)
+        enabledTransitions = enabledTimedTrans + \
+            enabledImmediateTrans + enabledCompetingTransitions
 
+        # log executed events (if applicable) to text file
         with open(filename_txt, 'a') as f:
             print('\tExecuted events:', file=f)
             if(len(enabledTransitions) == 0):
                 print('\tNone\n', file=f)
 
+        # counter to count number of executed events per simulation step
         eventCounter = 0
 
+        # choose a random event from list of enabled events, execute it, refresh event list, repeat until no enabled events remain
         while len(enabledTransitions) > 0:
 
-            random.shuffle(enabledTransitions)  # TODO: not needed?
+            # TODO: not needed?
+            random.shuffle(enabledTransitions)
 
+            # choose random event with random.choice()
             randomEvent = random.choice(enabledTransitions)
 
-            # process and log event
+            # increase event counter
             eventCounter += 1
+
+            # execute event and update text log file
             processEvent(eventCounter, randomEvent, filename_txt, FEL)
 
+            # clear enabled transition lists
             enabledTransitions.clear()
             enabledTimedTrans.clear()
             enabledImmediateTrans.clear()
+            enabledCompetingTransitions.clear()
 
+            # update enabled transition lists
             enabledTimedTrans, FEL = checkEnabledTimedTrans(
                 PetriNet, globalTimer, FEL)
             enabledImmediateTrans = checkEnabledImmediateTrans(PetriNet)
-            enabledTransitions = enabledTimedTrans + enabledImmediateTrans
+            enabledCompetingTransitions = checkEnabledCompetingImmediateTrans(
+                competitiveTransList, competitiveProbabilities)
+            enabledTransitions = enabledTimedTrans + \
+                enabledImmediateTrans + enabledCompetingTransitions
 
-            FELstring = '\t' + 'Future Event List: '
+        # log FEL to text file
+        FELstring = '\t' + 'Future Event List: '
+        if(len(FEL) > 0):
             for event in FEL:
                 FELstring += '(' + str(event[0].name) + \
                     ', ' + str(event[1]) + '), '
-            FELstring += '\n'
-            writeSimulationFile(FELstring, filename_txt)
+        else:
+            FELstring += 'None'
+        FELstring += '\n'
+        writeSimulationFile(FELstring, filename_txt)
 
-        # log current state of Petri Net (after processed events)
+        # log current state of Petri Net (changes after processed events): number of tokens at places, number of firings at transitions
         currentStateString = "\tCurrent state of Petri Net (changes):\n"
         for place in PetriNet.placeList:
             currentStateString += "\t" + place.name + \
@@ -131,12 +170,13 @@ def runSimulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int
             currentStateString += '\n'
         writeSimulationFile(currentStateString, filename_txt)
 
-        # generate random delay based on distribution type for all ENABLED Timed Transitions
-        # generateDelay(enabledTimedTrans)  # TODO: implement
-
-        # increase global timer to reach the next firing
-        # globalTimer += 1
-        globalTimer = increaseGlobalTimer(FEL)
+        # advance global timer to reach the next firing
+        if(len(FEL) != 0):
+            globalTimer = increaseGlobalTimer(FEL)
+        else:
+            writeSimulationFile('Simulation ended at: ' +
+                                str(globalTimer), filename_txt)
+            break
 
 
 def checkEnabledImmediateTrans(PetriNet):
@@ -144,6 +184,10 @@ def checkEnabledImmediateTrans(PetriNet):
     enabledImmediateTransList = []
 
     for immediateTrans in PetriNet.immediateTransList:
+
+        # skip competing immediate transitions, they are checked in separate function
+        if (immediateTrans.competing):
+            continue
 
         # default: enable all transitions, disable and iterate if does not meet requirements
         immediateTrans.enabled = True
@@ -194,7 +238,10 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
         if(timedTrans.guard is not None):
             if(timedTrans.guard() == False):
                 timedTrans.enabled = False
-                timedTrans.delay = None
+                if(timedTrans.agePolicy == 'R_ENABLE'):
+                    timedTrans.delay = None
+                if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                    FEL.remove((timedTrans, timedTrans.delay))
                 continue
 
         # check for inhibitor arcs blocking
@@ -203,7 +250,10 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
             for inhib in timedTrans.inhibArcs:
                 if(inhib.origin.tokens >= inhib.multiplicity):
                     timedTrans.enabled = False
-                    timedTrans.delay = None
+                    if(timedTrans.agePolicy == 'R_ENABLE'):
+                        timedTrans.delay = None
+                    if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                        FEL.remove((timedTrans, timedTrans.delay))
                     jump = True
                     break
             if(jump):
@@ -215,7 +265,10 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
             for input in timedTrans.inputArcs:
                 if(input.fromPlace.tokens < input.multiplicity):
                     timedTrans.enabled = False
-                    timedTrans.delay = None
+                    if(timedTrans.agePolicy == 'R_ENABLE'):
+                        timedTrans.delay = None
+                    if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                        FEL.remove((timedTrans, timedTrans.delay))
                     jump = True
                     break
             if(jump):
@@ -228,8 +281,14 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
             FEL.sort(key=sortDelay)
             continue
 
+        # re-enabled timed transition with race age policy
+        if(timedTrans.agePolicy == 'R_AGE'):
+            if (FEL.count((timedTrans, timedTrans.delay)) == 0):
+                FEL.append((timedTrans, timedTrans.delay))
+                FEL.sort(key=sortDelay)
+
         # check if firing delay has elapsed
-        if(timedTrans.delay != simulationTime):
+        if(timedTrans.delay > simulationTime):
             timedTrans.enabled = False
             continue
 
@@ -320,3 +379,86 @@ def sortDelay(tuple):
 
 def increaseGlobalTimer(FEL):
     return FEL[0][1]
+
+
+def checkCompetitiveTransitions(PetriNet):
+
+    competitiveTransList = []
+    competitiveProbabilities = []
+
+    for place in PetriNet.placeList:
+        transTuple = ()
+        probTuple = ()
+        for arc in place.inputArcs:
+            if checkType(arc.toTrans) == 'ImmediateTransition':
+                if arc.toTrans.fireProbability != 1.0:
+                    arc.toTrans.competing = True  # not need?
+                    transTuple = transTuple + (arc.toTrans,)
+                    probTuple = probTuple + (arc.toTrans.fireProbability,)
+        if len(transTuple) > 1:
+            competitiveTransList.append(transTuple)
+            competitiveProbabilities.append(probTuple)
+
+    return competitiveTransList, competitiveProbabilities
+
+
+def checkType(object):
+    return object.__class__.__name__
+
+
+def checkEnabledCompetingImmediateTrans(transList, probList):
+
+    enabledChoices = []
+
+    for id, choices in enumerate(transList):
+
+        disableChoice = False
+
+        for option in choices:
+
+            # safety check if competing event was discovered and registered during PN initialization
+            # TODO: redundant, remove?
+            if (not option.competing):
+                disableChoice = True
+                break
+
+            # default: enable all transitions, disable and iterate if does not meet requirements
+            option.enabled = True
+
+            # check for guard value
+            if(option.guard is not None):
+                if(option.guard() == False):
+                    option.enabled = False
+                    disableChoice = True
+                    break
+
+            # check for inhibitor arcs blocking
+            if(len(option.inhibArcs) > 0):
+                jump = False
+                for inhib in option.inhibArcs:
+                    if(inhib.origin.tokens >= inhib.multiplicity):
+                        option.enabled = False
+                        jump = True
+                        break
+                if(jump):
+                    disableChoice = True
+                    break
+
+            # check for input arcs
+            if(len(option.inputArcs) > 0):
+                jump = False
+                for input in option.inputArcs:
+                    if(input.fromPlace.tokens < input.multiplicity):
+                        option.enabled = False
+                        jump = True
+                        break
+                if(jump):
+                    disableChoice = True
+                    break
+
+        if (disableChoice):
+            continue
+        choice = random.choices(choices, probList[id])
+        enabledChoices = enabledChoices + choice
+
+    return enabledChoices

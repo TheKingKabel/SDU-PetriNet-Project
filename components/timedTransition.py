@@ -1,9 +1,10 @@
 from definitions.distribution_types import DistributionType
+from definitions.agepolicy_types import AgePolicyType
 
 
 class TimedTransition:
 
-    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', distArgA=0.0, distArgB=1.0, distArgC=0.0, distArgD=0.0, agePolicy: bool = False, guard=None, fireCount: int = 0):
+    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', distArgA: float = 0.0, distArgB: float = 1.0, distArgC: float = 0.0, distArgD: float = 0.0, agePolicy: AgePolicyType = 'R_ENABLE', guard=None, fireCount: int = 0):
         '''
         Create an instance of the Timed Transition class.
         @param name: Name of the Timed Transition, must be string, must be unique in assigned Petri Net
@@ -21,7 +22,7 @@ class TimedTransition:
                 # name of the Timed Transition
                 self.name = name
 
-                # type of distribution                  TODO: implement
+                # type of distribution
                 disTypes = [member.name for member in DistributionType]
 
                 if(distType in disTypes):
@@ -37,8 +38,21 @@ class TimedTransition:
                         returnMsg
                     )
 
-                # age policy setting of transition      TODO: implement race enabled/disabled
-                self.agePolicy = agePolicy
+                # age policy setting of transition
+                agePolicies = [member.name for member in AgePolicyType]
+
+                if(agePolicy in agePolicies):
+                    self.agePolicy = agePolicy
+                else:
+                    del self
+                    returnMsg = "The age policy set for Timed Transition named: " + \
+                        name + " is not defined.\nSupported age policies: "
+                    for member in agePolicies:
+                        returnMsg += '[' + member.name + \
+                            ": " + member.value + '], '
+                    raise Exception(
+                        returnMsg
+                    )
 
                 # set guard function if correctly specified, set to None if not applicable
                 if(guard is not None):

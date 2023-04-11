@@ -1,5 +1,4 @@
 from enum import Enum
-import numpy as np
 import scipy as sp
 
 
@@ -29,11 +28,9 @@ class DistributionType(Enum):
 def getDelay(distribution, a=0.0, b=1.0, c=0.0, d=0.0):
 
     if distribution == "NORM":
-        # return np.random.normal(a, b)
         return abs(sp.stats.norm.rvs(a, b))
 
     if distribution == "UNI":
-        # return np.random.uniform(a, b)
         return abs(sp.stats.uniform.rvs(a, b))
 
     if distribution == "CAU":
@@ -43,38 +40,30 @@ def getDelay(distribution, a=0.0, b=1.0, c=0.0, d=0.0):
         return abs(sp.stats.t.rvs(a, b))
 
     if distribution == "F_D":
-        # return np.random.noncentral_f(a, b, c)
         return abs(sp.stats.f.rvs(a, b, c, d))
 
     if distribution == "CHI":
-        # return np.random.chisquare(a)
         return abs(sp.stats.chi2.rvs(a, b, c))
 
     if distribution == "EXP":
-        # return np.random.exponential(a)
         return abs(sp.stats.expon.rvs(a, b))
 
     if distribution == "WEI_MIN":
-        # return np.random.weibull(a)
         return abs(sp.stats.weibull_min.rvs(a, b, c))
 
     if distribution == "WEI_MAX":
-        # return np.random.weibull(a)
         return abs(sp.stats.weibull_max.rvs(a, b, c))
 
     if distribution == "LOGN":
-        # return np.random.lognormal(a, b)
         return abs(sp.stats.lognorm.rvs(a, b, c))
 
     if distribution == "BI_SA":
         return abs(sp.stats.fatiguelife.rvs(a, b, c))
 
     if distribution == "GAMMA":
-        # return np.random.gamma(a, b)
         return abs(sp.stats.gamma.rvs(a, b, c))
 
     if distribution == "D_EXP":
-        # return np.random.laplace(a, b)
         return abs(sp.stats.laplace.rvs(a, b))
 
     if distribution == "P_NORM":
@@ -90,13 +79,10 @@ def getDelay(distribution, a=0.0, b=1.0, c=0.0, d=0.0):
         return abs(sp.stats.genextreme.rvs(a, b, c))
 
     if distribution == "BETA":
-        # return np.random.beta(a, b)
         return abs(sp.stats.beta.rvs(a, b, c, d))
 
     if distribution == "BIN":
-        # return np.random.binomial(a, b)
         return abs(sp.stats.binom.rvs(a, b, c))
 
     if distribution == "POI":
-        # return np.random.poisson(a)
         return abs(sp.stats.poisson.rvs(a, b))

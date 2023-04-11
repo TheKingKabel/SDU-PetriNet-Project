@@ -40,6 +40,9 @@ class ImmediateTransition:
                 # previous number of times Immediate Transition has fired, initially same value as fireCount
                 self.prevFireCount = fireCount
 
+                # Immediate Transition is competing with other Immediate Transition, boolean, checked and set automatically at the start of simulation
+                self.competing = False
+
                 # Immediate Transition enabled for firing, default: False, to be overwritten during simulation
                 self.enabled = False
 

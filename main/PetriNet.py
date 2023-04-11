@@ -4,6 +4,7 @@ from components.place import Place
 from components.inputArc import InputArc
 from components.outputArc import OutputArc
 from components.inhibArc import InhibArc
+from .simulation import simulation
 
 petriNetList = []
 
@@ -74,3 +75,7 @@ class PetriNet:
         for inhibArc in self.inhibList:
             returnString += str(inhibArc) + '\n'
         return returnString
+
+    def runSimulation(self, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+
+        simulation(self, simLength, randomSeed, verbose, defTimeUnit, logPath)
