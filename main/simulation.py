@@ -54,13 +54,6 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         with open(filename_txt, 'a') as f:
             print('Simulation time: ' + str(globalTimer), file=f)
 
-        # log current marking to csv file
-        with open(filename_csv, 'a') as f:
-            svcString = str(globalTimer)
-            for place in PetriNet.placeList:
-                svcString += ';' + str(place.tokens)
-            print(svcString, file=f)
-
         # lists to store enabled transitions to choose from at each simulation step (overwritten after every execution)
         enabledTransitions = []
         enabledTimedTrans = []
@@ -170,6 +163,13 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
             currentStateString += '\n'
         writeSimulationFile(currentStateString, filename_txt)
 
+        # log current marking to csv file
+        with open(filename_csv, 'a') as f:
+            svcString = str(globalTimer)
+            for place in PetriNet.placeList:
+                svcString += ';' + str(place.tokens)
+            print(svcString, file=f)
+
         # advance global timer to reach the next firing
         if(len(FEL) != 0):
             globalTimer = increaseGlobalTimer(FEL)
@@ -202,10 +202,16 @@ def checkEnabledImmediateTrans(PetriNet):
         if(len(immediateTrans.inhibArcs) > 0):
             jump = False
             for inhib in immediateTrans.inhibArcs:
-                if(inhib.origin.tokens >= inhib.multiplicity):
-                    immediateTrans.enabled = False
-                    jump = True
-                    break
+                if(checkType(inhib.multiplicity) == 'int'):
+                    if(inhib.origin.tokens >= inhib.multiplicity):
+                        immediateTrans.enabled = False
+                        jump = True
+                        break
+                else:
+                    if(inhib.origin.tokens >= inhib.multiplicity()):
+                        immediateTrans.enabled = False
+                        jump = True
+                        break
             if(jump):
                 continue
 
@@ -213,10 +219,16 @@ def checkEnabledImmediateTrans(PetriNet):
         if(len(immediateTrans.inputArcs) > 0):
             jump = False
             for input in immediateTrans.inputArcs:
-                if(input.fromPlace.tokens < input.multiplicity):
-                    immediateTrans.enabled = False
-                    jump = True
-                    break
+                if(checkType(input.multiplicity) == 'int'):
+                    if(input.fromPlace.tokens < input.multiplicity):
+                        immediateTrans.enabled = False
+                        jump = True
+                        break
+                else:
+                    if(input.fromPlace.tokens < input.multiplicity()):
+                        immediateTrans.enabled = False
+                        jump = True
+                        break
             if(jump):
                 continue
 
@@ -248,14 +260,24 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
         if(len(timedTrans.inhibArcs) > 0):
             jump = False
             for inhib in timedTrans.inhibArcs:
-                if(inhib.origin.tokens >= inhib.multiplicity):
-                    timedTrans.enabled = False
-                    if(timedTrans.agePolicy == 'R_ENABLE'):
-                        timedTrans.delay = None
-                    if (FEL.count((timedTrans, timedTrans.delay)) > 0):
-                        FEL.remove((timedTrans, timedTrans.delay))
-                    jump = True
-                    break
+                if(checkType(inhib.multiplicity) == 'int'):
+                    if(inhib.origin.tokens >= inhib.multiplicity):
+                        timedTrans.enabled = False
+                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                            timedTrans.delay = None
+                        if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                            FEL.remove((timedTrans, timedTrans.delay))
+                        jump = True
+                        break
+                else:
+                    if(inhib.origin.tokens >= inhib.multiplicity()):
+                        timedTrans.enabled = False
+                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                            timedTrans.delay = None
+                        if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                            FEL.remove((timedTrans, timedTrans.delay))
+                        jump = True
+                        break
             if(jump):
                 continue
 
@@ -263,14 +285,24 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
         if(len(timedTrans.inputArcs) > 0):
             jump = False
             for input in timedTrans.inputArcs:
-                if(input.fromPlace.tokens < input.multiplicity):
-                    timedTrans.enabled = False
-                    if(timedTrans.agePolicy == 'R_ENABLE'):
-                        timedTrans.delay = None
-                    if (FEL.count((timedTrans, timedTrans.delay)) > 0):
-                        FEL.remove((timedTrans, timedTrans.delay))
-                    jump = True
-                    break
+                if(checkType(input.multiplicity) == 'int'):
+                    if(input.fromPlace.tokens < input.multiplicity):
+                        timedTrans.enabled = False
+                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                            timedTrans.delay = None
+                        if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                            FEL.remove((timedTrans, timedTrans.delay))
+                        jump = True
+                        break
+                else:
+                    if(input.fromPlace.tokens < input.multiplicity()):
+                        timedTrans.enabled = False
+                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                            timedTrans.delay = None
+                        if (FEL.count((timedTrans, timedTrans.delay)) > 0):
+                            FEL.remove((timedTrans, timedTrans.delay))
+                        jump = True
+                        break
             if(jump):
                 continue
 
@@ -314,22 +346,31 @@ def processEvent(eventNo, enabledTrans, filePath, FEL):
     # remove tokens from input places according to arc multiplicity
     if(len(enabledTrans.inputArcs) > 0):
         for input in enabledTrans.inputArcs:
-            input.fromPlace.tokens -= input.multiplicity
+            if(checkType(input.multiplicity) == 'int'):
+                input.fromPlace.tokens -= input.multiplicity
+                eventString += str(input.multiplicity)
+            else:
+                input.fromPlace.tokens -= input.multiplicity()
+                eventString += str(input.multiplicity())
 
-            eventString += str(input.multiplicity) + \
-                ' tokens removed from Place ' + input.fromPlace.name + ', '
+            eventString += ' tokens removed from Place ' + input.fromPlace.name + ', '
 
     # add tokens to output places according to arc multiplicity
     # update Place token statistics
     if(len(enabledTrans.outputArcs) > 0):
         for output in enabledTrans.outputArcs:
-            output.toPlace.tokens += output.multiplicity
-            output.toPlace.totalTokens += output.multiplicity
+            if(checkType(output.multiplicity) == 'int'):
+                output.toPlace.tokens += output.multiplicity
+                output.toPlace.totalTokens += output.multiplicity
+                eventString += str(output.multiplicity)
+            else:
+                output.toPlace.tokens += output.multiplicity()
+                output.toPlace.totalTokens += output.multiplicity()
+                eventString += str(output.multiplicity())
             if(output.toPlace.tokens > output.toPlace.maxTokens):
                 output.toPlace.maxTokens = output.toPlace.tokens
 
-            eventString += str(output.multiplicity) + \
-                ' tokens added to Place ' + output.toPlace.name + ', '
+            eventString += ' tokens added to Place ' + output.toPlace.name + ', '
 
     writeSimulationFile(eventString, filePath)
 
@@ -436,10 +477,16 @@ def checkEnabledCompetingImmediateTrans(transList, probList):
             if(len(option.inhibArcs) > 0):
                 jump = False
                 for inhib in option.inhibArcs:
-                    if(inhib.origin.tokens >= inhib.multiplicity):
-                        option.enabled = False
-                        jump = True
-                        break
+                    if(checkType(inhib.multiplicity) == 'int'):
+                        if(inhib.origin.tokens >= inhib.multiplicity):
+                            option.enabled = False
+                            jump = True
+                            break
+                    else:
+                        if(inhib.origin.tokens >= inhib.multiplicity()):
+                            option.enabled = False
+                            jump = True
+                            break
                 if(jump):
                     disableChoice = True
                     break
@@ -448,10 +495,16 @@ def checkEnabledCompetingImmediateTrans(transList, probList):
             if(len(option.inputArcs) > 0):
                 jump = False
                 for input in option.inputArcs:
-                    if(input.fromPlace.tokens < input.multiplicity):
-                        option.enabled = False
-                        jump = True
-                        break
+                    if(checkType(input.multiplicity) == 'int'):
+                        if(input.fromPlace.tokens < input.multiplicity):
+                            option.enabled = False
+                            jump = True
+                            break
+                    else:
+                        if(input.fromPlace.tokens < input.multiplicity()):
+                            option.enabled = False
+                            jump = True
+                            break
                 if(jump):
                     disableChoice = True
                     break
