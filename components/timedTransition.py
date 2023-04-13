@@ -1,10 +1,11 @@
 from definitions.distribution_types import DistributionType
 from definitions.agepolicy_types import AgePolicyType
+from definitions.timeunit_types import TimeUnitType
 
 
 class TimedTransition:
 
-    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', distArgA: float = 0.0, distArgB: float = 1.0, distArgC: float = 0.0, distArgD: float = 0.0, agePolicy: AgePolicyType = 'R_ENABLE', guard=None, fireCount: int = 0):
+    def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', distArgA: float = 0.0, distArgB: float = 1.0, distArgC: float = 0.0, distArgD: float = 0.0, timeUnitType: TimeUnitType = 'sec', agePolicy: AgePolicyType = 'R_ENABLE', guard=None, fireCount: int = 0):
         '''
         Create an instance of the Timed Transition class.
         @param name: Name of the Timed Transition, must be string, must be unique in assigned Petri Net
@@ -32,6 +33,22 @@ class TimedTransition:
                     returnMsg = "The distribution type set for Timed Transition named: " + \
                         name + " is not defined.\nSupported distribution types: "
                     for member in DistributionType:
+                        returnMsg += '[' + member.name + \
+                            ": " + member.value + '], '
+                    raise Exception(
+                        returnMsg
+                    )
+
+                # time unit setting of transition
+                timeTypes = [member.name for member in TimeUnitType]
+
+                if(timeUnitType in timeTypes):
+                    self.timeUnitType = timeUnitType
+                else:
+                    del self
+                    returnMsg = "The time unit type set for Timed Transition named: " + \
+                        name + " is not defined.\nSupported time unit types: "
+                    for member in TimeUnitType:
                         returnMsg += '[' + member.name + \
                             ": " + member.value + '], '
                     raise Exception(

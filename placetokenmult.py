@@ -10,6 +10,8 @@ Place2 = Place('Place2', placeTokenMult)
 
 PlaceAux = Place('PlaceAux', placeTokenMult)
 
+PlaceAux2 = Place('PlaceAux2', placeTokenMult, 1)
+
 AuxOut = OutputArc('AuxOut', placeTokenMult, Trans, PlaceAux)
 
 Place3 = Place('Place3', placeTokenMult, 6)
@@ -17,6 +19,10 @@ Place3 = Place('Place3', placeTokenMult, 6)
 Place4 = Place('Place4', placeTokenMult)
 
 Trans2 = ImmediateTransition('Trans2', placeTokenMult)
+
+AuxOut2 = OutputArc('AuxOut2', placeTokenMult, Trans2, PlaceAux2)
+
+AuxIn2 = InputArc('AuxIn2', placeTokenMult, PlaceAux2, Trans)
 
 AuxIn = InputArc('AuxIn', placeTokenMult, PlaceAux, Trans2)
 

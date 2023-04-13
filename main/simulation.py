@@ -1,10 +1,25 @@
 import random
 import os
 from definitions.distribution_types import getDelay
+from definitions.timeunit_types import TimeUnitType, getTimeMultiplier
 from datetime import datetime
 
 
-def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: TimeUnitType = 'sec', logPath: str = './logs'):
+
+    # TODO: make typecheck for Petri Net param + other params!
+    # default time unit setting of simulation
+    timeTypes = [member.name for member in TimeUnitType]
+
+    if(defTimeUnit not in timeTypes):
+        returnMsg = "The default time unit type set for simulation of Petri Net named: " + \
+            PetriNet.name + " is not defined.\nSupported time unit types: "
+        for member in TimeUnitType:
+            returnMsg += '[' + member.name + \
+                ": " + member.value + '], '
+        raise Exception(
+            returnMsg
+        )
 
     # create folder structure (default: root/logs/)
     filePath = logPath + '/' + PetriNet.name + '/'
@@ -27,7 +42,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         print(PetriNet.name + ' simulation results\n', file=f)
     with open(filename_csv, 'w') as f:
         print(PetriNet.name + ' simulation results\n', file=f)
-        svcString = 'Timestamp / Place'
+        svcString = 'Timestamp (' + defTimeUnit + ') / Place'
         for place in PetriNet.placeList:
             svcString += ';' + place.name
         print(svcString, file=f)
@@ -52,7 +67,9 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
 
         # start text file logging
         with open(filename_txt, 'a') as f:
-            print('Simulation time: ' + str(globalTimer), file=f)
+            print('Simulation time: ' + str(globalTimer) +
+                  ' ' + defTimeUnit, file=f)
+            print('Simulation time: ' + str(globalTimer) + ' ' + defTimeUnit)
 
         # lists to store enabled transitions to choose from at each simulation step (overwritten after every execution)
         enabledTransitions = []
@@ -63,7 +80,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         enabledCompetingTransitions = []
 
         enabledTimedTrans, FEL = checkEnabledTimedTrans(
-            PetriNet, globalTimer, FEL)
+            PetriNet, globalTimer, FEL, defTimeUnit)
 
         enabledImmediateTrans = checkEnabledImmediateTrans(PetriNet)
 
@@ -76,17 +93,16 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         # log executed events (if applicable) to text file
         with open(filename_txt, 'a') as f:
             print('\tExecuted events:', file=f)
+            print('Executed events:')
             if(len(enabledTransitions) == 0):
                 print('\tNone\n', file=f)
+                print('\tNone')
 
         # counter to count number of executed events per simulation step
         eventCounter = 0
 
         # choose a random event from list of enabled events, execute it, refresh event list, repeat until no enabled events remain
         while len(enabledTransitions) > 0:
-
-            # TODO: not needed?
-            random.shuffle(enabledTransitions)
 
             # choose random event with random.choice()
             randomEvent = random.choice(enabledTransitions)
@@ -105,7 +121,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
 
             # update enabled transition lists
             enabledTimedTrans, FEL = checkEnabledTimedTrans(
-                PetriNet, globalTimer, FEL)
+                PetriNet, globalTimer, FEL, defTimeUnit)
             enabledImmediateTrans = checkEnabledImmediateTrans(PetriNet)
             enabledCompetingTransitions = checkEnabledCompetingImmediateTrans(
                 competitiveTransList, competitiveProbabilities)
@@ -113,7 +129,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
                 enabledImmediateTrans + enabledCompetingTransitions
 
         # log FEL to text file
-        FELstring = '\t' + 'Future Event List: '
+        FELstring = '\n\t' + 'Future Event List: '
         if(len(FEL) > 0):
             for event in FEL:
                 FELstring += '(' + str(event[0].name) + \
@@ -124,7 +140,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         writeSimulationFile(FELstring, filename_txt)
 
         # log current state of Petri Net (changes after processed events): number of tokens at places, number of firings at transitions
-        currentStateString = "\tCurrent state of Petri Net (changes):\n"
+        currentStateString = "\tCurrent marking of Petri Net (changes):\n"
         for place in PetriNet.placeList:
             currentStateString += "\t" + place.name + \
                 " tokens: " + str(place.tokens)
@@ -137,6 +153,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
                     str(place.tokens - place.prevTokens) + ')'
                 place.prevTokens = place.tokens
             currentStateString += '\n'
+        currentStateString += '\n\tStatistics (changes):\n'
         for trans in PetriNet.timedTransList:
             currentStateString += "\t" + trans.name + \
                 " firings: " + str(trans.fireCount)
@@ -171,12 +188,20 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
             print(svcString, file=f)
 
         # advance global timer to reach the next firing
-        if(len(FEL) != 0):
-            globalTimer = increaseGlobalTimer(FEL)
-        else:
+        # no more events in FEL: simulation ended before reaching the defined length
+        if(len(FEL) == 0):
             writeSimulationFile('Simulation ended at: ' +
-                                str(globalTimer), filename_txt)
+                                str(globalTimer) + ' ' + defTimeUnit, filename_txt)
             break
+        else:
+            # timestamp of next event in FEL exceeds simulation length
+            if(increaseGlobalTimer(FEL) > simLength):
+                writeSimulationFile('Simulation ended at: ' +
+                                    str(simLength) + ' ' + defTimeUnit, filename_txt)
+                break
+            else:
+                # advance to timestamp of next event in FEL
+                globalTimer = increaseGlobalTimer(FEL)
 
 
 def checkEnabledImmediateTrans(PetriNet):
@@ -237,7 +262,7 @@ def checkEnabledImmediateTrans(PetriNet):
     return enabledImmediateTransList
 
 
-def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
+def checkEnabledTimedTrans(PetriNet, simulationTime, FEL, simTimeUnit):
 
     enabledTimedTransList = []
 
@@ -308,7 +333,7 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL):
 
         # firing is enabled, generate delay for timed transition
         if(timedTrans.delay is None):
-            delay = generateDelay(timedTrans, simulationTime)
+            delay = generateDelay(timedTrans, simulationTime, simTimeUnit)
             FEL.append((timedTrans, delay))
             FEL.sort(key=sortDelay)
             continue
@@ -381,10 +406,11 @@ def processEvent(eventNo, enabledTrans, filePath, FEL):
         enabledTrans.delay = None
 
 
-def generateDelay(trans, simulationTime):
+def generateDelay(trans, simulationTime, simTimeUnit):
 
-    trans.delay = getDelay(trans.distType, trans.a,
-                           trans.b, trans.c, trans.d) + simulationTime
+    trans.delay = (getDelay(trans.distType, trans.a,
+                            trans.b, trans.c, trans.d) * getTimeMultiplier(simTimeUnit, trans.timeUnitType)) + simulationTime
+
     return trans.delay
 
 
@@ -410,6 +436,7 @@ def makePetriNetFile(PetriNet, filePath):
 
 def writeSimulationFile(eventText, filePath):
 
+    print(eventText)
     with open(filePath, 'a') as f:
         print(eventText, file=f)
 
