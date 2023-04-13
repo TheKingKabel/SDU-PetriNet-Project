@@ -56,7 +56,13 @@ class OutputArc:
 
                 # multiplicity of Arc
                 if(checkType(multiplicity) == 'int'):
-                    self.multiplicity = multiplicity
+                    if(multiplicity <= 0):
+                        del self
+                        raise Exception(
+                            "The multiplicity of Inhibitor Arc named: " + name + " must be greater than 0!"
+                        )
+                    else:
+                        self.multiplicity = multiplicity
                 elif(checkType(multiplicity()) == 'int'):
                     self.multiplicity = multiplicity
                 else:
