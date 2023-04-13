@@ -55,7 +55,14 @@ class OutputArc:
                         "Output Arc's toPlace parameter must be instance of class Place")
 
                 # multiplicity of Arc
-                self.multiplicity = multiplicity
+                if(checkType(multiplicity) == 'int'):
+                    self.multiplicity = multiplicity
+                elif(checkType(multiplicity()) == 'int'):
+                    self.multiplicity = multiplicity
+                else:
+                    del self
+                    raise Exception(
+                        "The multiplicity of Input Arc named: " + name + " is invalid (must be integer or function call returning integer value)!")
 
                 # add Output Arc to PN's Output Arc list
                 petriNet.outputArcList.append(self)

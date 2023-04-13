@@ -55,7 +55,14 @@ class InputArc:
                         "Input Arc's toTrans parameter must be instance of class Timed Transition or Immediate Transition")
 
                 # multiplicity of Arc
-                self.multiplicity = multiplicity
+                if(checkType(multiplicity) == 'int'):
+                    self.multiplicity = multiplicity
+                elif(checkType(multiplicity()) == 'int'):
+                    self.multiplicity = multiplicity
+                else:
+                    del self
+                    raise Exception(
+                        "The multiplicity of Input Arc named: " + name + " is invalid (must be integer or function call returning integer value)!")
 
                 # add Input Arc to PN's Input Arc list
                 petriNet.inputArcList.append(self)

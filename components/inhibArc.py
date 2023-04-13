@@ -1,7 +1,7 @@
 
 class InhibArc:
 
-    def __init__(self, name: str, petriNet, origin, target, multiplicity: int = 1):
+    def __init__(self, name: str, petriNet, origin, target, multiplicity=1):
         '''
         Create an instance of the Inhibitor Arc class.
         @param name: Name of the Inhibitor Arc, must be string, must be unique in assigned Petri Net
@@ -43,7 +43,14 @@ class InhibArc:
                         "Inhibitor Arc's target parameter must be instance of class Timed Transition or Immediate Transition")
 
                 # multiplicity of Arc
-                self.multiplicity = multiplicity
+                if(checkType(multiplicity) == 'int'):
+                    self.multiplicity = multiplicity
+                elif(checkType(multiplicity()) == 'int'):
+                    self.multiplicity = multiplicity
+                else:
+                    del self
+                    raise Exception(
+                        "The multiplicity of Inhibitor Arc named: " + name + " is invalid (must be integer or function call returning integer value)!")
 
                 # add Inhibitor Arc to PN's Inhibitor Arc list
                 petriNet.inhibList.append(self)
