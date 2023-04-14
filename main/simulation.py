@@ -57,6 +57,19 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
     # Future Event List, for logging purpose
     FEL = []
 
+    # Petri Net Marking list, used to record statistics of different markings
+    PNmarkings = []
+
+    # Marking total time list, used to record statistics of time of different markings
+    markings_time = []
+
+    # counter for occurrence of different markings
+    markings_count = []
+
+    # temporary variables to store previous marking and timestamp
+    prevMarking = ''
+    prevTS = 0.0
+
     # discover and store references & probabilities for competing immediate transitions
     competitiveTransList, competitiveProbabilities = checkCompetitiveTransitions(
         PetriNet)
@@ -140,8 +153,19 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         writeSimulationFile(FELstring, filename_txt)
 
         # log current state of Petri Net (changes after processed events): number of tokens at places, number of firings at transitions
+        # record current state of Petri Net to logging variables and list
         currentStateString = "\tCurrent marking of Petri Net (changes):\n"
+        svcString = str(globalTimer)
+        first = True
+        currentMarking = '('
+
         for place in PetriNet.placeList:
+            svcString += ';' + str(place.tokens)
+            if first:
+                currentMarking += str(place.tokens)
+                first = False
+            else:
+                currentMarking += ', ' + str(place.tokens)
             currentStateString += "\t" + place.name + \
                 " tokens: " + str(place.tokens)
             if place.prevTokens > place.tokens:
@@ -178,27 +202,51 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
                     str(trans.fireCount - trans.prevFireCount) + ')'
                 trans.prevFireCount = trans.fireCount
             currentStateString += '\n'
+
+        currentMarking += ')'
+
+        if(currentMarking not in PNmarkings):
+            PNmarkings.append(currentMarking)
+            markings_time.append(0.0)
+            markings_count.append(1)
+        else:
+            markings_count[PNmarkings.index(currentMarking)] += 1
+
+        if(prevMarking in PNmarkings):
+            markings_time[PNmarkings.index(
+                prevMarking)] += (globalTimer - prevTS)
+        prevMarking = currentMarking
+        prevTS = globalTimer
+
+        currentStateString += '\n\tOccurred markings, nbr. of occurrence, total time spent in marking, and percentage of time spent in marking:\n'
+
+        for id, mark in enumerate(PNmarkings):
+            currentStateString += '\t' + mark + ': ' + str(markings_count[id]) + ', ' + str(
+                markings_time[id]) + ', '
+            if(globalTimer == 0.0):
+                currentStateString += 'N/A\n'
+            else:
+                currentStateString += str(markings_time[id]/globalTimer) + '\n'
+
         writeSimulationFile(currentStateString, filename_txt)
 
         # log current marking to csv file
         with open(filename_csv, 'a') as f:
-            svcString = str(globalTimer)
-            for place in PetriNet.placeList:
-                svcString += ';' + str(place.tokens)
             print(svcString, file=f)
 
         # advance global timer to reach the next firing
-        # no more events in FEL: simulation ended before reaching the defined length
-        if(len(FEL) == 0):
+        # simulation end time reached, stop simulation
+        if(globalTimer == simLength):
             writeSimulationFile('Simulation ended at: ' +
-                                str(globalTimer) + ' ' + defTimeUnit, filename_txt)
+                                str(simLength) + ' ' + defTimeUnit, filename_txt)
             break
+        # no more events in FEL: simulation ended before reaching the defined length, end simulation at defined length
+        if(len(FEL) == 0):
+            globalTimer = simLength
         else:
-            # timestamp of next event in FEL exceeds simulation length
+            # timestamp of next event in FEL exceeds simulation length, end simulation at defined length
             if(increaseGlobalTimer(FEL) > simLength):
-                writeSimulationFile('Simulation ended at: ' +
-                                    str(simLength) + ' ' + defTimeUnit, filename_txt)
-                break
+                globalTimer = simLength
             else:
                 # advance to timestamp of next event in FEL
                 globalTimer = increaseGlobalTimer(FEL)
