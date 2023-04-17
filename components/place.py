@@ -1,34 +1,48 @@
+# place.py module for Petri Net Project
+# contains class definition for object type Place
 
 class Place:
+    '''
+    Class that represents an Place object.
+    '''
 
     def __init__(self, name: str, petriNet, tokens: int = 0, totalTokens: int = 0, maxTokens: int = 0):
         '''
-        Create an instance of the Place class.
-        @param name: Name of the Place, must be string, must be unique in assigned Petri Net
-        @param petriNet: Reference of parent Petri Net element for Place to be assigned to, must be instance of class PetriNet
-        @param tokens: Current number of tokens held by Place, must be integer
-        @param totalTokens: Total number of tokens held by Place for statistics, must be integer        TODO: remove from constructor, it's updated automatically
-        @param maxTokens: Maximum number of tokens held by Place for statistics, must be integer        TODO: remove from constructor, it's updated automatically
+        Constructor method of the Place class.
+        Arguments:
+            @param name: Name of the Place, must be string, must be unique amongst Place names in assigned Petri Net.
+            @param petriNet: Reference of parent Petri Net object for Place to be assigned to, must be instance of class PetriNet.
+            @param tokens (optional): Parameter used to overwrite initial number of tokens held by Place, must be integer. Default value: 0.
+            @param totalTokens (optional): Parameter used to overwrite initial total number of tokens held by Place, used for statistics, must be integer. Default value: 0, if not set, but tokens is set: tokens.
+            @param maxTokens (optional): Parameter used to overwrite initial maximum number of tokens held by Place, used for statistics, must be integer. Default value: 0, if not set, but tokens is set: tokens.        TODO: remove from constructor, it's updated automatically
         '''
-        if(checkType(petriNet) == "PetriNet"):
-            # reference of Petri Net consisting current Place
+        if(_checkType(petriNet) == "PetriNet"):
+            # set reference of Petri Net to assign current Place to
             self.petriNet = petriNet
 
-            if (checkName(petriNet, name)):
-                # name of the Place
+            if (_checkName(petriNet, name)):
+                # set name of the Place
                 self.name = name
 
-                # number of initial tokens, default 0
+                # set number of initial tokens, default 0
                 self.tokens = tokens
 
-                # previous number of tokens, initially same value as tokens
+                # set previous number of tokens, initially same value as tokens (used for statistics)
                 self.prevTokens = tokens
 
-                # variable to count the total number of tokens in Place for statistics, default 0 TODO: implement automatic updating during simulation
-                self.totalTokens = totalTokens
+                # set total number of tokens held by Place for statistics, default 0, updated automatically during simulation
+                if(tokens > totalTokens):
+                    # if tokens was set, assign same value
+                    self.totalTokens = tokens
+                if(tokens <= totalTokens):
+                    self.totalTokens = totalTokens
 
-                # variable to count the maximum tokens in Place for statistics, default 0 TODO: implement automatic updating during simulation
-                self.maxTokens = maxTokens
+                # set maximum number of tokens held by Place for statistics, default 0, updated automatically during simulation
+                if(tokens > maxTokens):
+                    # if tokens was set, assign same value
+                    self.maxTokens = tokens
+                if(tokens <= maxTokens):
+                    self.maxTokens = maxTokens
 
                 # list of Input Arcs originating from current Place
                 self.inputArcs = []
@@ -54,25 +68,34 @@ class Place:
 
     def __str__(self):
         '''
-        Default return value of class, gives description of current state of Place.
+        Returns user-friendly string representation (description) of Place object.
         '''
         returnString = (
-            f"Place (name: {self.name}, "
-            f"in Petri Net named: {self.petriNet.name}, "
-            f"current number of tokens: {self.tokens}, "
-            f"total tokens held: {self.totalTokens}, "
-            f"max tokens held: {self.maxTokens}, "
-            "list of originating Input Arcs: ")
+            f"Place\n"
+            f"\tname: {self.name},\n"
+            f"\tin Petri Net named: {self.petriNet.name},\n"
+            f"\tcurrent number of tokens: {self.tokens},\n"
+            f"\ttotal tokens held: {self.totalTokens},\n"
+            f"\tmaximum tokens held: {self.maxTokens},\n"
+            f"\tnumber of originating Input Arcs: {len(self.inputArcs)},\n"
+            "\tlist of originating Input Arcs:\n")
         for arc in self.inputArcs:
-            returnString += f"{str(arc)},\n"
-        returnString += "list of targeting Output Arcs: "
+            returnString += f"\t\t{str(arc)},\n"
+        returnString += f"\tnumber of targeting Output Arcs: {len(self.outputArcs)},\n"
+        returnString += "\tlist of targeting Output Arcs:\n"
         for arc in self.outputArcs:
-            returnString += f"{str(arc)},\n"
-        returnString += "list of originating Inhibitor Arcs: "
+            returnString += f"\t\t{str(arc)},\n"
+        returnString += f"\tnumber of originating Inhibitor Arcs: {len(self.inhibArcs)},\n"
+        returnString += "\tlist of originating Inhibitor Arcs:\n"
         for arc in self.inhibArcs:
-            returnString += f"{str(arc)},\n"
+            returnString += f"\t\t{str(arc)},\n"
 
         return returnString
+
+    # TODO: delete getter setters, not needed?
+    #
+    #
+    #
 
     # NAME
     def setName(self, newName: str):
@@ -80,7 +103,7 @@ class Place:
         Setter function for name of Place.
         @param newName: New name for Place, must be string, must be unique in assigned Petri Net
         '''
-        if (checkName(self.petriNet, newName)):
+        if (_checkName(self.petriNet, newName)):
             self.name = newName
         else:
             raise Exception(
@@ -146,7 +169,7 @@ class Place:
         @param *inputArcList: New tuple of Input Arcs to be added to Place's Input Arc list, must be a tuple of instances of class Input Arc, Input Arcs must be assigned to same Petri Net instance
         '''
         for arc in inputArcList:
-            if(checkType(arc) != "InputArc"):
+            if(_checkType(arc) != "InputArc"):
                 raise Exception(
                     "Place's new Input Arc list's elements must be instances of class Input Arc")
             if(arc.petriNet != self.petriNet):
@@ -181,7 +204,7 @@ class Place:
         Note: this function adds one new Input Arc to the Place's Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInputArcs.
         @param newInputArc: New Input Arc to be added to Place's Input Arc list, must be instance of class Input Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newInputArc) != "InputArc"):
+        if(_checkType(newInputArc) != "InputArc"):
             raise Exception(
                 "Place's new Input Arc must be instance of class Input Arc")
         if(newInputArc.petriNet != self.petriNet):
@@ -201,7 +224,7 @@ class Place:
         @param *outputArcList: New tuple of Output Arcs to be added to Place's Output Arc list, must be a tuple of instances of class Output Arc, Output Arcs must be assigned to same Petri Net instance
         '''
         for arc in outputArcList:
-            if(checkType(arc) != "OutputArc"):
+            if(_checkType(arc) != "OutputArc"):
                 raise Exception(
                     "Place's new Output Arc list's elements must be instances of class Output Arc")
             if(arc.petriNet != self.petriNet):
@@ -236,7 +259,7 @@ class Place:
         Note: this function adds one new Output Arc to the Place's Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutputArcs.
         @param newOutputArc: New Output Arc to be added to Place's Output Arc list, must be instance of class Output Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newOutputArc) != "OutputArc"):
+        if(_checkType(newOutputArc) != "OutputArc"):
             raise Exception(
                 "Place's new Output Arc must be instance of class Output Arc")
         if(newOutputArc.petriNet != self.petriNet):
@@ -256,7 +279,7 @@ class Place:
         @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Place's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc, Inhibitor Arcs must be assigned to same Petri Net instance
         '''
         for arc in inhibArcList:
-            if(checkType(arc) != "InhibArc"):
+            if(_checkType(arc) != "InhibArc"):
                 raise Exception(
                     "Place's new Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
             if(arc.petriNet != self.petriNet):
@@ -291,7 +314,7 @@ class Place:
         Note: this function adds one new Inhibitor Arc to the Place's Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInhibArcs.
         @param newInhibArc: New Inhibitor Arc to be added to Place's Inhibitor Arc list, must be instance of class Inhibitor Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newInhibArc) != "InhibArc"):
+        if(_checkType(newInhibArc) != "InhibArc"):
             raise Exception(
                 "Place's new Inhibitor Arc must be instance of class Inhibitor Arc")
         if(newInhibArc.petriNet != self.petriNet):
@@ -304,12 +327,12 @@ class Place:
         self.inhibArcs.append(newInhibArc)
 
 
-def checkName(petriNet, name):
+def _checkName(petriNet, name):
     for place in petriNet.placeList:
         if (place.name == name):
             return False
     return True
 
 
-def checkType(object):
+def _checkType(object):
     return object.__class__.__name__
