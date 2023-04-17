@@ -28,6 +28,10 @@ class InhibArc:
 
                 # add reference of Inhibitor Arc to Origin's Inhibitor Arc list
                 if(_checkType(origin) == "Place"):
+                    if(origin.petriNet != petriNet):
+                        del self
+                        raise Exception(
+                            "Inhibitor Arc's origin parameter must be instance of class Place from the same assigned Petri Net")
                     # set reference of origin Place
                     self.origin = origin
                     origin.inhibArcs.append(self)
