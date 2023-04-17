@@ -42,10 +42,18 @@ class InhibArc:
 
                 # add reference of Inhibitor Arc to target Transition's Inhibitor Arc list
                 if(_checkType(target) == "TimedTransition"):
+                    if(target.petriNet != petriNet):
+                        del self
+                        raise Exception(
+                            "Inhibitor Arc's target parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
                     # set reference of target (Timed) Transition
                     self.target = target
                     target.inhibArcs.append(self)
                 elif(_checkType(target) == "ImmediateTransition"):
+                    if(target.petriNet != petriNet):
+                        del self
+                        raise Exception(
+                            "Inhibitor Arc's target parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
                     # set reference of target (Immediate) Transition
                     self.target = target
                     target.inhibArcs.append(self)
