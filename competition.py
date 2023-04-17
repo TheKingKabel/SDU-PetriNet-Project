@@ -41,4 +41,5 @@ Inter43 = OutputArc('Inter43', competition, TWait23, Final)
 Inter44 = OutputArc('Inter44', competition, TWait24, Final)
 
 
-competition.runSimulation(35)
+# competition.runSimulation(35)
+competition.describe()

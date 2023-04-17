@@ -10,7 +10,7 @@ class ImmediateTransition:
         '''
         Constructor method of the Immediate Transition class.
         Arguments:
-            @param name: Name of the Immediate Transition, must be string, must be unique amongst place names in assigned Petri Net.
+            @param name: Name of the Immediate Transition, must be string, must be unique amongst Immediate Transition names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Immediate Transition to be assigned to, must be instance of class PetriNet.
             @param guard (optional): Condition for Immediate Transition to be enabled for firing, must be reference to a callable function defined in the user file, returning boolean value True or False, i.e. "Queue.tokens >= 1". If not applicable, must be set to None. Default value: None.
             @param fireProbability (optional): Parameter used to calculate firing probability for competing Immediate Transitions, must be float. Default value: 1.0 (100%).
