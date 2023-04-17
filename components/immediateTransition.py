@@ -51,7 +51,7 @@ class ImmediateTransition:
                 # set if Immediate Transition is competing with other Immediate Transition, boolean, checked and set automatically at the start of simulation
                 self.competing = False
 
-                # set if Immediate Transition enabled for firing, default: False, checked and set automatically during simulation
+                # set if Immediate Transition is enabled for firing, default: False, checked and set automatically during simulation
                 self.enabled = False
 
                 # list of Input Arcs targeting current Immediate Transition
