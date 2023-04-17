@@ -1,26 +1,34 @@
+# immediateTransitions.py module for Petri Net Project
+# contains class definition for object type Immediate Transition
 
 class ImmediateTransition:
+    '''
+    Class that represents an Immediate Transition object.
+    '''
 
     def __init__(self, name: str, petriNet, guard=None, fireProbability: float = 1.0, fireCount: int = 0):
         '''
-        Create an instance of the Immediate Transition class.
-        @param name: Name of the Immediate Transition, must be string, must be unique in assigned Petri Net
-        @param petriNet: Reference of parent Petri Net element for Immediate Transition to be assigned to, must be instance of class PetriNet
-        @param guard: Condition for Immediate Transition to be enabled for firing, must be assessable logic statement in string, i.e. "Queue.tokens >= 1"
-        @param fireProbability: Variable used to calculate firing probability, must be float
-        @param fireCount: Variable used to count the number of firings of Immediate Transition for statistics, must be integer
+        Constructor method of the Immediate Transition class.
+        Arguments:
+            @param name: Name of the Immediate Transition, must be string, must be unique amongst place names in assigned Petri Net.
+            @param petriNet: Reference of parent Petri Net object for Immediate Transition to be assigned to, must be instance of class PetriNet.
+            @param guard (optional): Condition for Immediate Transition to be enabled for firing, must be reference to a callable function defined in the user file, returning boolean value True or False, i.e. "Queue.tokens >= 1". If not applicable, must be set to None. Default value: None.
+            @param fireProbability (optional): Parameter used to calculate firing probability for competing Immediate Transitions, must be float. Default value: 1.0 (100%).
+            @param fireCount (optional): Parameter used to overwrite initial number of firings of Immediate Transitions, used for statistics, must be integer. Default value: 0.
         '''
-        if(checkType(petriNet) == "PetriNet"):
-            # reference of Petri Net consisting current Immediate Transition
+
+        # Type checks
+        if(_checkType(petriNet) == "PetriNet"):
+            # set reference of Petri Net to assign current Immediate Transition to
             self.petriNet = petriNet
 
-            if (checkName(petriNet, name)):
-                # name of the Immediate Transition
+            if (_checkName(petriNet, name)):
+                # set name of the Immediate Transition
                 self.name = name
 
                 # set guard function if correctly specified, set to None if not applicable
                 if(guard is not None):
-                    if(checkType(guard()) == 'bool'):
+                    if(_checkType(guard()) == 'bool'):
                         # set guard function
                         self.guard = guard
                     else:
@@ -31,19 +39,19 @@ class ImmediateTransition:
                     # guard is not specified
                     self.guard = None
 
-                # probability of firing, default 1.0 (100%)
+                # set probability of firing, default 1.0 (100%)
                 self.fireProbability = fireProbability
 
-                # number of times Immediate Transition has fired, default 0
+                # set number of times Immediate Transition has fired, default 0
                 self.fireCount = fireCount
 
-                # previous number of times Immediate Transition has fired, initially same value as fireCount
+                # set previous number of times Immediate Transition has fired, initially same value as fireCount (used for statistics)
                 self.prevFireCount = fireCount
 
-                # Immediate Transition is competing with other Immediate Transition, boolean, checked and set automatically at the start of simulation
+                # set if Immediate Transition is competing with other Immediate Transition, boolean, checked and set automatically at the start of simulation
                 self.competing = False
 
-                # Immediate Transition enabled for firing, default: False, to be overwritten during simulation
+                # set if Immediate Transition enabled for firing, default: False, checked and set automatically during simulation
                 self.enabled = False
 
                 # list of Input Arcs targeting current Immediate Transition
@@ -70,26 +78,36 @@ class ImmediateTransition:
 
     def __str__(self):
         '''
-        Default return value of class, gives description of current state of Immediate Transition.
+        Returns user-friendly string representation (description) of Immediate Transition object.
         '''
         returnString = (
-            f"Immediate Transition (name: {self.name}, "
-            f"in Petri Net named: {self.petriNet.name}, "
-            f"with guard function: {self.guard}, "
-            f"currently enabled: {self.enabled}, "
-            f"firing probability: {self.fireProbability}, "
-            f"times fired: {self.fireCount}, "
-            "list of targeting Input Arcs: ")
+            f"Immediate Transition\n"
+            f"\tname: {self.name},\n"
+            f"\tin Petri Net named: {self.petriNet.name},\n"
+            f"\twith guard function: {self.guard},\n"
+            f"\tcurrently enabled: {self.enabled},\n"
+            f"\tcompeting: {self.competing},\n"  # TODO: not set at this point?
+            f"\twith firing possibility: {self.fireProbability},\n"
+            f"\tcurrent firing times: {self.fireCount},\n"
+            f"\tnumber of targeting Input Arcs: {len(self.inputArcs)},\n"
+            "\tlist of targeting Input Arcs:\n")
         for arc in self.inputArcs:
-            returnString += f"{str(arc)},\n"
-        returnString += "list of originating Output Arcs: "
+            returnString += f"\t\t{str(arc)},\n"
+        returnString += f"\tnumber of originating Output Arcs: {len(self.outputArcs)},\n"
+        returnString += "\tlist of originating Output Arcs:\n"
         for arc in self.outputArcs:
-            returnString += f"{str(arc)},\n"
-        returnString += "list of targeting Inhibitor Arcs: "
+            returnString += f"\t\t{str(arc)},\n"
+        returnString += f"\tnumber of targeting Inhibitor Arcs: {len(self.inhibArcs)},\n"
+        returnString += "\tlist of targeting Inhibitor Arcs:\n"
         for arc in self.inhibArcs:
-            returnString += f"{str(arc)},\n"
+            returnString += f"\t\t{str(arc)},\n"
 
         return returnString
+
+    # TODO: delete getter setters, not needed?
+    #
+    #
+    #
 
     # NAME
     def setName(self, newName: str):
@@ -97,7 +115,7 @@ class ImmediateTransition:
         Setter function for name of Immediate Transition.
         @param newName: New name for Immediate Transition, must be string, must be unique in assigned Petri Net
         '''
-        if (checkName(self.petriNet, newName)):
+        if (_checkName(self.petriNet, newName)):
             self.name = newName
         else:
             raise Exception(
@@ -172,7 +190,7 @@ class ImmediateTransition:
         @param *inputArcList: New tuple of Input Arcs to be added to Immediate Transition's Input Arc list, must be a tuple of instances of class Input Arc, Input Arcs must be assigned to same Petri Net instance
         '''
         for arc in inputArcList:
-            if(checkType(arc) != "InputArc"):
+            if(_checkType(arc) != "InputArc"):
                 raise Exception(
                     "Immediate Transition's new Input Arc list's elements must be instances of class Input Arc")
             if(arc.petriNet != self.petriNet):
@@ -207,7 +225,7 @@ class ImmediateTransition:
         Note: this function adds one new Input Arc to the Immediate Transition's Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInputArcs.
         @param newInputArc: New Input Arc to be added to Immediate Transition's Input Arc list, must be instance of class Input Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newInputArc) != "InputArc"):
+        if(_checkType(newInputArc) != "InputArc"):
             raise Exception(
                 "Immediate Transition's new Input Arc must be instance of class Input Arc")
         if(newInputArc.petriNet != self.petriNet):
@@ -227,7 +245,7 @@ class ImmediateTransition:
         @param *outputArcList: New tuple of Output Arcs to be added to Immediate Transition's Output Arc list, must be a tuple of instances of class Output Arc, Output Arcs must be assigned to same Petri Net instance
         '''
         for arc in outputArcList:
-            if(checkType(arc) != "OutputArc"):
+            if(_checkType(arc) != "OutputArc"):
                 raise Exception(
                     "Immediate Transition's new Output Arc list's elements must be instances of class Output Arc")
             if(arc.petriNet != self.petriNet):
@@ -262,7 +280,7 @@ class ImmediateTransition:
         Note: this function adds one new Output Arc to the Immediate Transition's Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutputArcs.
         @param newOutputArc: New Output Arc to be added to Immediate Transition's Output Arc list, must be instance of class Output Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newOutputArc) != "OutputArc"):
+        if(_checkType(newOutputArc) != "OutputArc"):
             raise Exception(
                 "Immediate Transition's new Output Arc must be instance of class Output Arc")
         if(newOutputArc.petriNet != self.petriNet):
@@ -282,7 +300,7 @@ class ImmediateTransition:
         @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Immediate Transition's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc, Inhibitor Arcs must be assigned to same Petri Net instance
         '''
         for arc in inhibArcList:
-            if(checkType(arc) != "InhibArc"):
+            if(_checkType(arc) != "InhibArc"):
                 raise Exception(
                     "Immediate Transition's new Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
             if(arc.petriNet != self.petriNet):
@@ -317,7 +335,7 @@ class ImmediateTransition:
         Note: this function adds one new Inhibitor Arc to the Immediate Transition's Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInhibArcs.
         @param newInhibArc: New Inhibitor Arc to be added to Immediate Transition's Inhibitor Arc list, must be instance of class Inhibitor Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newInhibArc) != "InhibArc"):
+        if(_checkType(newInhibArc) != "InhibArc"):
             raise Exception(
                 "Immediate Transition's new Inhibitor Arc must be instance of class Inhibitor Arc")
         if(newInhibArc.petriNet != self.petriNet):
@@ -330,12 +348,12 @@ class ImmediateTransition:
         self.inhibArcs.append(newInhibArc)
 
 
-def checkName(petriNet, name):
+def _checkName(petriNet, name):
     for trans in petriNet.immediateTransList:
         if (trans.name == name):
             return False
     return True
 
 
-def checkType(object):
+def _checkType(object):
     return object.__class__.__name__

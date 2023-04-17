@@ -28,52 +28,52 @@ class PetriNet:
         Describes the current state of the Petri Net instance.
         '''
         print("Places:\n")
-        print(self.getPlaces())
+        print('\t'.join(self.getPlaces().splitlines(True)))
         print("Timed Transitions:\n")
-        print(self.getTimedTransitions())
+        print('\t'.join(self.getTimedTransitions().splitlines(True)))
         print("Immediate Transitions:\n")
-        print(self.getImmediateTransitions())
+        print('\t'.join(self.getImmediateTransitions().splitlines(True)))
         print("Input Arcs:\n")
-        print(self.getInputArcs())
+        print('\t'.join(self.getInputArcs().splitlines(True)))
         print("Output Arcs:\n")
-        print(self.getOutputArcs())
+        print('\t'.join(self.getOutputArcs().splitlines(True)))
         print("Inhibitor Arcs:\n")
-        print(self.getInhibArcs())
+        print('\t'.join(self.getInhibArcs().splitlines(True)))
 
     def getPlaces(self):
         returnString = ''
         for place in self.placeList:
-            returnString += str(place) + '\n'
+            returnString += '\t' + str(place) + '\n'
         return returnString
 
     def getTimedTransitions(self):
         returnString = ''
         for timedTrans in self.timedTransList:
-            returnString += str(timedTrans) + '\n'
+            returnString += '\t' + str(timedTrans) + '\n'
         return returnString
 
     def getImmediateTransitions(self):
         returnString = ''
         for immediateTrans in self.immediateTransList:
-            returnString += str(immediateTrans) + '\n'
+            returnString += '\t' + str(immediateTrans) + '\n'
         return returnString
 
     def getInputArcs(self):
         returnString = ''
         for inputArc in self.inputArcList:
-            returnString += str(inputArc) + '\n'
+            returnString += '\t' + str(inputArc) + '\n'
         return returnString
 
     def getOutputArcs(self):
         returnString = ''
         for outputArc in self.outputArcList:
-            returnString += str(outputArc) + '\n'
+            returnString += '\t' + str(outputArc) + '\n'
         return returnString
 
     def getInhibArcs(self):
         returnString = ''
         for inhibArc in self.inhibList:
-            returnString += str(inhibArc) + '\n'
+            returnString += '\t' + str(inhibArc) + '\n'
         return returnString
 
     def runSimulation(self, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
