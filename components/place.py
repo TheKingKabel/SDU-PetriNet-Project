@@ -12,9 +12,9 @@ class Place:
         Arguments:
             @param name: Name of the Place, must be string, must be unique amongst Place names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Place to be assigned to, must be instance of class PetriNet.
-            @param tokens (optional): Parameter used to overwrite initial number of tokens held by Place, must be integer. Default value: 0.
-            @param totalTokens (optional): Parameter used to overwrite initial total number of tokens held by Place, used for statistics, must be integer. Default value: 0, if not set, but tokens is set: tokens.
-            @param maxTokens (optional): Parameter used to overwrite initial maximum number of tokens held by Place, used for statistics, must be integer. Default value: 0, if not set, but tokens is set: tokens.        TODO: remove from constructor, it's updated automatically
+            @param tokens (optional): Parameter used to overwrite initial number of tokens held by Place, must be integer, must not be smaller than 0. Default value: 0.
+            @param totalTokens (optional): Parameter used to overwrite initial total number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.
+            @param maxTokens (optional): Parameter used to overwrite initial maximum number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.        TODO: remove from constructor, it's updated automatically
         '''
         if(_checkType(petriNet) == "PetriNet"):
             # set reference of Petri Net to assign current Place to
@@ -22,27 +22,57 @@ class Place:
 
             if (_checkName(petriNet, name)):
                 # set name of the Place
-                self.name = name
+                self.name = str(name)
 
                 # set number of initial tokens, default 0
-                self.tokens = tokens
+                if(_checkType(tokens) == 'int'):
+                    if(tokens < 0):
+                        del self
+                        raise Exception(
+                            "The initial number of tokens set for Place named: " + name + " must not be smaller than 0!")
+                    else:
+                        self.tokens = tokens
+                else:
+                    del self
+                    raise Exception(
+                        "The initial number of tokens set for Place named: " + name + " must be an integer number!")
 
                 # set previous number of tokens, initially same value as tokens (used for statistics)
                 self.prevTokens = tokens
 
                 # set total number of tokens held by Place for statistics, default 0, updated automatically during simulation
-                if(tokens > totalTokens):
-                    # if tokens was set, assign same value
-                    self.totalTokens = tokens
-                if(tokens <= totalTokens):
-                    self.totalTokens = totalTokens
+                if(_checkType(totalTokens) == 'int'):
+                    if(totalTokens < 0):
+                        del self
+                        raise Exception(
+                            "The number of total tokens set for Place named: " + name + " must not be smaller than 0!")
+                    else:
+                        if(tokens > totalTokens):
+                            # if tokens was set, assign same value
+                            self.totalTokens = tokens
+                        if(tokens <= totalTokens):
+                            self.totalTokens = totalTokens
+                else:
+                    del self
+                    raise Exception(
+                        "The number of total tokens set for Place named: " + name + " must be an integer number!")
 
                 # set maximum number of tokens held by Place for statistics, default 0, updated automatically during simulation
-                if(tokens > maxTokens):
-                    # if tokens was set, assign same value
-                    self.maxTokens = tokens
-                if(tokens <= maxTokens):
-                    self.maxTokens = maxTokens
+                if(_checkType(maxTokens) == 'int'):
+                    if(maxTokens < 0):
+                        del self
+                        raise Exception(
+                            "The number of maximum tokens set for Place named: " + name + " must not be smaller than 0!")
+                    else:
+                        if(tokens > maxTokens):
+                            # if tokens was set, assign same value
+                            self.maxTokens = tokens
+                        if(tokens <= maxTokens):
+                            self.maxTokens = maxTokens
+                else:
+                    del self
+                    raise Exception(
+                        "The number of maximum tokens set for Place named: " + name + " must be an integer number!")
 
                 # list of Input Arcs originating from current Place
                 self.inputArcs = []

@@ -24,7 +24,7 @@ class InputArc:
 
             if (_checkName(petriNet, name)):
                 # set name of the Input Arc
-                self.name = name
+                self.name = str(name)
 
                 # add reference of Input Arc to origin Place's Input Arc list
                 if(_checkType(fromPlace) == "Place"):

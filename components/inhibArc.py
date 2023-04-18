@@ -24,7 +24,7 @@ class InhibArc:
 
             if (_checkName(petriNet, name)):
                 # set name of the Inhibitor Arc
-                self.name = name
+                self.name = str(name)
 
                 # add reference of Inhibitor Arc to Origin's Inhibitor Arc list
                 if(_checkType(origin) == "Place"):

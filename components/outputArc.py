@@ -24,7 +24,7 @@ class OutputArc:
 
             if (_checkName(petriNet, name)):
                 # set name of the Output Arc
-                self.name = name
+                self.name = str(name)
 
                 # add reference of Output Arc to origin Transition's Output Arc list
                 if(_checkType(fromTrans) == "TimedTransition"):

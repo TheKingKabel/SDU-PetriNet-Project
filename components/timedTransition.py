@@ -21,7 +21,7 @@ class TimedTransition:
             @param timeUnitType (optional): Parameter used to set time unit for Timed Transition's random firings, must be chosen from predefined list. Default value: 'sec' (seconds).
             @param agePolicy (optional): Parameter used enable/disable race age of Timed Transition, must be chosen from predefined list. Default value: 'R_ENABLE' (Race enabled).
             @param guard (optional): Condition for Timed Transition to be enabled for firing, must be reference to a callable function defined in the user file, returning boolean value True or False, i.e. "Queue.tokens >= 1". If not applicable, must be set to None. Default value: None.
-            @param fireCount (optional): Parameter used to overwrite initial number of firings of Timed Transition, used for statistics, must be integer. Default value: 0.
+            @param fireCount (optional): Parameter used to overwrite initial number of firings of Timed Transition, used for statistics, must be integer, must not be smaller than 0. Default value: 0.
         '''
 
         # Type checks
@@ -31,7 +31,7 @@ class TimedTransition:
 
             if (_checkName(petriNet, name)):
                 # set name of the Timed Transition
-                self.name = name
+                self.name = str(name)
 
                 # set type of distribution
                 disTypes = [member.name for member in DistributionType]
@@ -95,7 +95,17 @@ class TimedTransition:
                     self.guard = None
 
                 # number of times Timed Transition has fired, default 0
-                self.fireCount = fireCount
+                if(_checkType(fireCount) == 'int'):
+                    if(fireCount < 0):
+                        del self
+                        raise Exception(
+                            "The fireCount parameter of Timed Transition named: " + name + " must not be smaller than 0!")
+                    else:
+                        self.fireCount = fireCount
+                else:
+                    del self
+                    raise Exception(
+                        "The fireCount parameter of Timed Transition named: " + name + " must be an integer number!")
 
                 # set previous number of times Timed Transition has fired, initially same value as fireCount (used for statistics)
                 self.prevFireCount = fireCount

@@ -13,8 +13,8 @@ class ImmediateTransition:
             @param name: Name of the Immediate Transition, must be string, must be unique amongst Immediate Transition names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Immediate Transition to be assigned to, must be instance of class PetriNet.
             @param guard (optional): Condition for Immediate Transition to be enabled for firing, must be reference to a callable function defined in the user file, returning boolean value True or False, i.e. "Queue.tokens >= 1". If not applicable, must be set to None. Default value: None.
-            @param fireProbability (optional): Parameter used to calculate firing probability for competing Immediate Transitions, must be float. Default value: 1.0 (100%).
-            @param fireCount (optional): Parameter used to overwrite initial number of firings of Immediate Transition, used for statistics, must be integer. Default value: 0.
+            @param fireProbability (optional): Parameter used to calculate firing probability for competing Immediate Transitions, must be float, must be in between 0.0 (greater) and 1.0. Default value: 1.0 (100%).
+            @param fireCount (optional): Parameter used to overwrite initial number of firings of Immediate Transition, used for statistics, must be integer, must not be smaller than 0. Default value: 0.
         '''
 
         # Type checks
@@ -24,7 +24,7 @@ class ImmediateTransition:
 
             if (_checkName(petriNet, name)):
                 # set name of the Immediate Transition
-                self.name = name
+                self.name = str(name)
 
                 # set guard function if correctly specified, set to None if not applicable
                 if(guard is not None):
@@ -40,10 +40,36 @@ class ImmediateTransition:
                     self.guard = None
 
                 # set probability of firing, default 1.0 (100%)
-                self.fireProbability = fireProbability
+                # firing probability must be floating number between between 0.0 (greater than 0) and 1.0 (100%)
+                if(_checkType(fireProbability) == 'float'):
+                    if(fireProbability <= 0):
+                        del self
+                        raise Exception(
+                            "The firing probability of Immediate Transition named: " + name + " must be greater than 0.0!")
+                    elif(fireProbability > 1):
+                        del self
+                        raise Exception(
+                            "The firing probability of Immediate Transition named: " + name + " must not be greater than 1.0!")
+                    else:
+                        self.fireProbability = fireProbability
+                else:
+                    del self
+                    raise Exception(
+                        "The firing probability value of Immediate Transition named: " + name + " must be a floating number!")
 
                 # set number of times Immediate Transition has fired, default 0
-                self.fireCount = fireCount
+                # fire count must be greater or equal than 0
+                if(_checkType(fireCount) == 'int'):
+                    if(fireCount < 0):
+                        del self
+                        raise Exception(
+                            "The fireCount parameter of Immediate Transition named: " + name + " must not be smaller than 0!")
+                    else:
+                        self.fireCount = fireCount
+                else:
+                    del self
+                    raise Exception(
+                        "The fireCount parameter of Immediate Transition named: " + name + " must be an integer number!")
 
                 # set previous number of times Immediate Transition has fired, initially same value as fireCount (used for statistics)
                 self.prevFireCount = fireCount
