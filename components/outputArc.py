@@ -1,4 +1,4 @@
-# outputArc.py module for Petri Net Project
+# components/outputArc.py module for Petri Net Project
 # contains class definition for object type output Arc
 
 class OutputArc:

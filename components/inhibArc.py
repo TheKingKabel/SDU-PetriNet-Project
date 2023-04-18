@@ -1,4 +1,4 @@
-# inhibArc.py module for Petri Net Project
+# components/inhibArc.py module for Petri Net Project
 # contains class definition for object type Inhibitor Arc
 
 class InhibArc:

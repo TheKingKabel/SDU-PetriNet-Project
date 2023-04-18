@@ -1,4 +1,4 @@
-# immediateTransitions.py module for Petri Net Project
+# components/immediateTransitions.py module for Petri Net Project
 # contains class definition for object type Immediate Transition
 
 class ImmediateTransition:

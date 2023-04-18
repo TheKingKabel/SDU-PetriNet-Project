@@ -1,3 +1,7 @@
+# definitions/distribution_types.py module for Petri Net Project
+# contains enumeration for distribution setting of Timed Transition objects
+# contains function to generate random delay time according to input distribution and distribution parameters
+
 from enum import Enum
 import scipy as sp
 

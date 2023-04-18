@@ -1,4 +1,4 @@
-# inputArc.py module for Petri Net Project
+# components/inputArc.py module for Petri Net Project
 # contains class definition for object type Input Arc
 
 class InputArc:

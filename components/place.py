@@ -1,4 +1,4 @@
-# place.py module for Petri Net Project
+# components/place.py module for Petri Net Project
 # contains class definition for object type Place
 
 class Place:

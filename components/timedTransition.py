@@ -1,4 +1,4 @@
-# timedTransitions.py module for Petri Net Project
+# components/timedTransitions.py module for Petri Net Project
 # contains class definition for object type Timed Transition
 
 from definitions.distribution_types import DistributionType
