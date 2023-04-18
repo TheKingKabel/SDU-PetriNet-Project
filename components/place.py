@@ -79,16 +79,28 @@ class Place:
             f"\tmaximum tokens held: {self.maxTokens},\n"
             f"\tnumber of originating Input Arcs: {len(self.inputArcs)},\n"
             "\tlist of originating Input Arcs:\n")
-        for arc in self.inputArcs:
-            returnString += f"\t\t{str(arc)},\n"
+        if(len(self.inputArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.inputArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
         returnString += f"\tnumber of targeting Output Arcs: {len(self.outputArcs)},\n"
         returnString += "\tlist of targeting Output Arcs:\n"
-        for arc in self.outputArcs:
-            returnString += f"\t\t{str(arc)},\n"
+        if(len(self.outputArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.outputArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
         returnString += f"\tnumber of originating Inhibitor Arcs: {len(self.inhibArcs)},\n"
         returnString += "\tlist of originating Inhibitor Arcs:\n"
-        for arc in self.inhibArcs:
-            returnString += f"\t\t{str(arc)},\n"
+        if(len(self.inhibArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.inhibArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
 
         return returnString
 

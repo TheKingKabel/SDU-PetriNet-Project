@@ -27,53 +27,65 @@ class PetriNet:
         '''
         Describes the current state of the Petri Net instance.
         '''
-        print("Places:\n")
+        print("Places:")
         print('\t'.join(self.getPlaces().splitlines(True)))
-        print("Timed Transitions:\n")
+        print("Timed Transitions:")
         print('\t'.join(self.getTimedTransitions().splitlines(True)))
-        print("Immediate Transitions:\n")
+        print("Immediate Transitions:")
         print('\t'.join(self.getImmediateTransitions().splitlines(True)))
-        print("Input Arcs:\n")
+        print("Input Arcs:")
         print('\t'.join(self.getInputArcs().splitlines(True)))
-        print("Output Arcs:\n")
+        print("Output Arcs:")
         print('\t'.join(self.getOutputArcs().splitlines(True)))
-        print("Inhibitor Arcs:\n")
+        print("Inhibitor Arcs:")
         print('\t'.join(self.getInhibArcs().splitlines(True)))
 
     def getPlaces(self):
         returnString = ''
+        if(len(self.placeList) == 0):
+            return '\tNone\n'
         for place in self.placeList:
-            returnString += '\t' + str(place) + '\n'
+            returnString += '\n' + str(place)
         return returnString
 
     def getTimedTransitions(self):
         returnString = ''
+        if(len(self.timedTransList) == 0):
+            return '\tNone\n'
         for timedTrans in self.timedTransList:
-            returnString += '\t' + str(timedTrans) + '\n'
+            returnString += '\n' + str(timedTrans)
         return returnString
 
     def getImmediateTransitions(self):
         returnString = ''
+        if(len(self.immediateTransList) == 0):
+            return '\tNone\n'
         for immediateTrans in self.immediateTransList:
-            returnString += '\t' + str(immediateTrans) + '\n'
+            returnString += '\n' + str(immediateTrans)
         return returnString
 
     def getInputArcs(self):
         returnString = ''
+        if(len(self.inputArcList) == 0):
+            return '\tNone\n'
         for inputArc in self.inputArcList:
-            returnString += '\t' + str(inputArc) + '\n'
+            returnString += '\n' + str(inputArc)
         return returnString
 
     def getOutputArcs(self):
         returnString = ''
+        if(len(self.outputArcList) == 0):
+            return '\tNone\n'
         for outputArc in self.outputArcList:
-            returnString += '\t' + str(outputArc) + '\n'
+            returnString += '\n' + str(outputArc)
         return returnString
 
     def getInhibArcs(self):
         returnString = ''
+        if(len(self.inhibList) == 0):
+            return '\tNone\n'
         for inhibArc in self.inhibList:
-            returnString += '\t' + str(inhibArc) + '\n'
+            returnString += '\n' + str(inhibArc)
         return returnString
 
     def runSimulation(self, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):

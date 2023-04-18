@@ -25,4 +25,7 @@ IA22 = InputArc("IA22", mutex, Wait2, TT2)
 OA21 = OutputArc("OA21", mutex, TT1, Choice)
 OA22 = OutputArc("OA22", mutex, TT2, Choice)
 
-mutex.runSimulation(50)
+# mutex.runSimulation(50)
+
+
+mutex.describe()

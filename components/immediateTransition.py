@@ -91,16 +91,28 @@ class ImmediateTransition:
             f"\tcurrent firing times: {self.fireCount},\n"
             f"\tnumber of targeting Input Arcs: {len(self.inputArcs)},\n"
             "\tlist of targeting Input Arcs:\n")
-        for arc in self.inputArcs:
-            returnString += f"\t\t{str(arc)},\n"
+        if(len(self.inputArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.inputArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
         returnString += f"\tnumber of originating Output Arcs: {len(self.outputArcs)},\n"
         returnString += "\tlist of originating Output Arcs:\n"
-        for arc in self.outputArcs:
-            returnString += f"\t\t{str(arc)},\n"
+        if(len(self.outputArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.outputArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
         returnString += f"\tnumber of targeting Inhibitor Arcs: {len(self.inhibArcs)},\n"
         returnString += "\tlist of targeting Inhibitor Arcs:\n"
-        for arc in self.inhibArcs:
-            returnString += f"\t\t{str(arc)},\n"
+        if(len(self.inhibArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.inhibArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
 
         return returnString
 
