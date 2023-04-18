@@ -1,3 +1,7 @@
+# main/PetriNet.py module for Petri Net Project
+# contains class definition for object type Petri Net
+# TODO: to be imported to users' project modules
+
 from components.immediateTransition import ImmediateTransition
 from components.timedTransition import TimedTransition
 from components.place import Place
@@ -6,26 +10,50 @@ from components.outputArc import OutputArc
 from components.inhibArc import InhibArc
 from .simulation import simulation
 
+# list of user created Petri Net's (in active module)
 petriNetList = []
 
 
 class PetriNet:
-    def __init__(self, name: str):
+    '''
+    Class that represents a Petri Net object.
+    '''
 
+    def __init__(self, name: str):
+        '''
+        Constructor method of the Petri Net class.
+        Arguments:
+            @param name: Name of the Petri Net, must be string, must be unique amongst Petri Net names created by user in the same module.
+        '''
+
+        # set name of the Petri Net
         self.name = str(name)
 
+        # create lists to store different objects assigned to current Petri Net
+        # list of Place assigned to current Petri Net
         self.placeList = []
+
+        # list of Timed Transitions assigned to current Petri Net
         self.timedTransList = []
+
+        # list of Immediate Transitions assigned to current Petri Net
         self.immediateTransList = []
+
+        # list of Input Arcs assigned to current Petri Net
         self.inputArcList = []
+
+        # list of Output Arcs assigned to current Petri Net
         self.outputArcList = []
+
+        # list of Inhibitor Arcs assigned to current Petri Net
         self.inhibList = []
 
+        # add Petri Net to list of Petri Nets created by user in current module
         petriNetList.append(self)
 
     def describe(self):
         '''
-        Describes the current state of the Petri Net instance.
+        Returns user-friendly textual description of the Petri Net object.
         '''
         print("Places:")
         print('\t'.join(self.getPlaces().splitlines(True)))
@@ -41,6 +69,9 @@ class PetriNet:
         print('\t'.join(self.getInhibArcs().splitlines(True)))
 
     def getPlaces(self):
+        '''
+        Returns user-friendly string representation (description) of the Places assigned to the Petri Net object.
+        '''
         returnString = ''
         if(len(self.placeList) == 0):
             return '\tNone\n'
@@ -49,6 +80,9 @@ class PetriNet:
         return returnString
 
     def getTimedTransitions(self):
+        '''
+        Returns user-friendly string representation (description) of the Timed Transitions assigned to the Petri Net object.
+        '''
         returnString = ''
         if(len(self.timedTransList) == 0):
             return '\tNone\n'
@@ -57,6 +91,9 @@ class PetriNet:
         return returnString
 
     def getImmediateTransitions(self):
+        '''
+        Returns user-friendly string representation (description) of the Immediate Transitions assigned to the Petri Net object.
+        '''
         returnString = ''
         if(len(self.immediateTransList) == 0):
             return '\tNone\n'
@@ -65,6 +102,9 @@ class PetriNet:
         return returnString
 
     def getInputArcs(self):
+        '''
+        Returns user-friendly string representation (description) of the Input Arcs assigned to the Petri Net object.
+        '''
         returnString = ''
         if(len(self.inputArcList) == 0):
             return '\tNone\n'
@@ -73,6 +113,9 @@ class PetriNet:
         return returnString
 
     def getOutputArcs(self):
+        '''
+        Returns user-friendly string representation (description) of the Output Arcs assigned to the Petri Net object.
+        '''
         returnString = ''
         if(len(self.outputArcList) == 0):
             return '\tNone\n'
@@ -81,6 +124,9 @@ class PetriNet:
         return returnString
 
     def getInhibArcs(self):
+        '''
+        Returns user-friendly string representation (description) of the Inhibitor Arcs assigned to the Petri Net object.
+        '''
         returnString = ''
         if(len(self.inhibList) == 0):
             return '\tNone\n'
@@ -88,6 +134,11 @@ class PetriNet:
             returnString += '\n' + str(inhibArc)
         return returnString
 
-    def runSimulation(self, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+    def runSimulation(self, simLength: float, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+        '''
+        Method to run a simulation on the Petri Net.
+        Arguments:
+            @param simLength:
+        '''
 
         simulation(self, simLength, randomSeed, verbose, defTimeUnit, logPath)
