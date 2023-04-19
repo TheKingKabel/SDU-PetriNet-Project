@@ -19,6 +19,6 @@ INPPServiceTService = InputArc("INPPServiceTService", bank, PService, TService)
 INHPServiceTWait = InhibArc("INHPServiceTWait", bank, PService, TWait)
 
 
-#bank.runSimulation(10, defTimeUnit='hr')
+bank.runSimulation(0, defTimeUnit='hr')
 
-bank.describe()
+# bank.describe()

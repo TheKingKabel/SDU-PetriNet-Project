@@ -135,10 +135,13 @@ class PetriNet:
         return returnString
 
     def runSimulation(self, simLength: float, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+        # TODO: randomSeed, verbose ?
         '''
         Method to run a simulation on the Petri Net.
         Arguments:
-            @param simLength:
+            @param simLength: Time length of the simulation. Must be float, must not be smaller than 0.
+            @param randomSeed:
+            @param defTimeUnit (optional): Default time unit used in the simulation and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
+            @param logPath (optional): Path of the folder where the simulation result logs will be generated in. Default value: root/logs/.
         '''
-
         simulation(self, simLength, randomSeed, verbose, defTimeUnit, logPath)
