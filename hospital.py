@@ -37,4 +37,14 @@ INPWaitingRoomTreatment = InputArc(
 OUTTreatmentLeaveTreat = OutputArc(
     "OUTTreatmentLeaveTreat", hospital, Treatment, LeaveTreat)
 
-hospital.runSimulation(80)
+
+def roomFull():
+    return WaitingRoom.tokens == 3
+
+
+def roomEmpty():
+    return WaitingRoom.tokens == 0
+
+
+hospital.runSimulation(80, conditionals=[(
+    'Waiting room is full', roomFull), ('Waiting room is empty', roomEmpty)])

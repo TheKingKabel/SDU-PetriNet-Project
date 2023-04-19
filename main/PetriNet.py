@@ -134,7 +134,7 @@ class PetriNet:
             returnString += '\n' + str(inhibArc)
         return returnString
 
-    def runSimulation(self, simLength: float, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', logPath: str = './logs'):
+    def runSimulation(self, simLength: float, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
         # TODO: randomSeed, verbose ?
         '''
         Method to run a simulation on the Petri Net.
@@ -142,6 +142,8 @@ class PetriNet:
             @param simLength: Time length of the simulation. Must be float, must not be smaller than 0.
             @param randomSeed:
             @param defTimeUnit (optional): Default time unit used in the simulation and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
+            @param conditionals: Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to a callable functions defined in the user file, returning boolean value True or False, i.e. "Server.tokens >= 1". If not applicable, must be set to None. Default value: None.
             @param logPath (optional): Path of the folder where the simulation result logs will be generated in. Default value: root/logs/.
         '''
-        simulation(self, simLength, randomSeed, verbose, defTimeUnit, logPath)
+        simulation(self, simLength, randomSeed, verbose,
+                   defTimeUnit, conditionals, logPath)
