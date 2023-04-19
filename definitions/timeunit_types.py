@@ -1,3 +1,6 @@
+# definitions/timeunit_types.py module for Petri Net Project
+# contains enumeration for timeunit setting of Timed Transition objects and Petri Net simulation
+# contains function to calculate conversion ratio if Timed Transition's timeunit parameter differs from Petri Net simulation's default timeunit parameter
 
 from enum import Enum
 

@@ -19,6 +19,19 @@ INPPServiceTService = InputArc("INPPServiceTService", bank, PService, TService)
 INHPServiceTWait = InhibArc("INHPServiceTWait", bank, PService, TWait)
 
 
-bank.runSimulation(10, defTimeUnit='hr')
+def serverBusy():
+    return PService.tokens >= 1
+
+
+def bigQueue():
+    return PQueue.tokens >= 4
+
+
+def exactQueue():
+    return PQueue.tokens == 2
+
+
+bank.runSimulation(6, defTimeUnit='hr', conditionals=[
+                   ('Busy bank teller', serverBusy), ('Lot of customers', bigQueue), ('Queue of customers is exactly 2', exactQueue)])
 
 # bank.describe()

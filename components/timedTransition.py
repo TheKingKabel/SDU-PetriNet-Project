@@ -1,29 +1,39 @@
+# components/timedTransitions.py module for Petri Net Project
+# contains class definition for object type Timed Transition
+
 from definitions.distribution_types import DistributionType
 from definitions.agepolicy_types import AgePolicyType
 from definitions.timeunit_types import TimeUnitType
 
 
 class TimedTransition:
+    '''
+    Class that represents an Timed Transition object.
+    '''
 
     def __init__(self, name: str, petriNet, distType: DistributionType = 'NORM', distArgA: float = 0.0, distArgB: float = 1.0, distArgC: float = 0.0, distArgD: float = 0.0, timeUnitType: TimeUnitType = 'sec', agePolicy: AgePolicyType = 'R_ENABLE', guard=None, fireCount: int = 0):
         '''
-        Create an instance of the Timed Transition class.
-        @param name: Name of the Timed Transition, must be string, must be unique in assigned Petri Net
-        @param petriNet: Reference of parent Petri Net element for Timed Transition to be assigned to, must be instance of class PetriNet
-        @param distType: Distribution type of random firings of the Timed Transition, must be chosen from predetermined enumeration         TODO: implement enumeration, define default
-        @param agePolicy: Setting to able/disable race age of Timed Transition, must be chosen from predetermined enumeration               TODO: implement enumeration, define default
-        @param guard: Condition for Timed Transition to be enabled for firing, must be assessable logic statement in string, i.e. "Queue.tokens >= 1"
-        @param fireCount: Variable used to count the number of firings of Timed Transition for statistics, must be integer
+        Constructor method of the Timed Transition class.
+        Arguments:
+            @param name: Name of the Timed Transition, must be string, must be unique amongst Timed Transition names in assigned Petri Net.
+            @param petriNet: Reference of parent Petri Net object for Timed Transition to be assigned to, must be instance of class PetriNet.
+            @param distType (optional): Distribution type of random firings of the Timed Transition, must be chosen from predefined list. Default value: 'NORM' (Normal distribution).
+            @param timeUnitType (optional): Parameter used to set time unit for Timed Transition's random firings, must be chosen from predefined list. Default value: 'sec' (seconds).
+            @param agePolicy (optional): Parameter used enable/disable race age of Timed Transition, must be chosen from predefined list. Default value: 'R_ENABLE' (Race enabled).
+            @param guard (optional): Condition for Timed Transition to be enabled for firing, must be reference to a callable function defined in the user file, returning boolean value True or False, i.e. "Queue.tokens >= 1". If not applicable, must be set to None. Default value: None.
+            @param fireCount (optional): Parameter used to overwrite initial number of firings of Timed Transition, used for statistics, must be integer, must not be smaller than 0. Default value: 0.
         '''
-        if(checkType(petriNet) == "PetriNet"):
-            # reference of Petri Net consisting current Timed Transition
+
+        # Type checks
+        if(_checkType(petriNet) == "PetriNet"):
+            # set reference of Petri Net to assign current Timed Transition to
             self.petriNet = petriNet
 
-            if (checkName(petriNet, name)):
-                # name of the Timed Transition
-                self.name = name
+            if (_checkName(petriNet, name)):
+                # set name of the Timed Transition
+                self.name = str(name)
 
-                # type of distribution
+                # set type of distribution
                 disTypes = [member.name for member in DistributionType]
 
                 if(distType in disTypes):
@@ -39,7 +49,7 @@ class TimedTransition:
                         returnMsg
                     )
 
-                # time unit setting of transition
+                # set time unit of Timed Transition
                 timeTypes = [member.name for member in TimeUnitType]
 
                 if(timeUnitType in timeTypes):
@@ -55,7 +65,7 @@ class TimedTransition:
                         returnMsg
                     )
 
-                # age policy setting of transition
+                # set age policy of Timed Transition
                 agePolicies = [member.name for member in AgePolicyType]
 
                 if(agePolicy in agePolicies):
@@ -73,7 +83,7 @@ class TimedTransition:
 
                 # set guard function if correctly specified, set to None if not applicable
                 if(guard is not None):
-                    if(checkType(guard()) == 'bool'):
+                    if(_checkType(guard()) == 'bool'):
                         # set guard function
                         self.guard = guard
                     else:
@@ -85,15 +95,25 @@ class TimedTransition:
                     self.guard = None
 
                 # number of times Timed Transition has fired, default 0
-                self.fireCount = fireCount
+                if(_checkType(fireCount) == 'int'):
+                    if(fireCount < 0):
+                        del self
+                        raise Exception(
+                            "The fireCount parameter of Timed Transition named: " + name + " must not be smaller than 0!")
+                    else:
+                        self.fireCount = fireCount
+                else:
+                    del self
+                    raise Exception(
+                        "The fireCount parameter of Timed Transition named: " + name + " must be an integer number!")
 
-                # previous number of times Timed Transition has fired, initially same value as fireCount
+                # set previous number of times Timed Transition has fired, initially same value as fireCount (used for statistics)
                 self.prevFireCount = fireCount
 
-                # Timed Transition enabled for firing, default: False, to be overwritten during simulation
+                # set if Timed Transition is enabled for firing, default: False, checked and set automatically during simulation
                 self.enabled = False
 
-                # Delay for next firing, automatically generated during simulation, default None, if no enabled set to None
+                # set delay for next firing, automatically generated and set during simulation, default None, if not enabled set to None
                 self.delay = None
 
                 # Distribution arguments TODO: change default value?
@@ -117,7 +137,7 @@ class TimedTransition:
             else:
                 del self
                 raise Exception(
-                    "An Timed Transition already exists named: " + name + ", in Petri Net named: " + petriNet.name)
+                    "A Timed Transition already exists named: " + name + ", in Petri Net named: " + petriNet.name)
 
         else:
             del self
@@ -126,29 +146,51 @@ class TimedTransition:
 
     def __str__(self):
         '''
-        Default return value of class, gives description of current state of Timed Transition.
+        Returns user-friendly string representation (description) of Timed Transition object.
         '''
         returnString = (
-            f"Timed Transition (name: {self.name}, "
-            f"in Petri Net named: {self.petriNet.name}, "
-            f"with distribution type: {self.distType}, "
-            f"distribution arguments: {self.a}, {self.b}, {self.c}, {self.d}, "
-            f"with guard function: {self.guard}, "
-            f"currently enabled: {self.enabled}, "
-            f"current firing delay: {self.delay}, "
-            f"age policy: {self.agePolicy}, "
-            f"times fired: {self.fireCount}, "
-            "list of targeting Input Arcs: ")
-        for arc in self.inputArcs:
-            returnString += f"{str(arc)},\n"
-        returnString += "list of originating Output Arcs: "
-        for arc in self.outputArcs:
-            returnString += f"{str(arc)},\n"
-        returnString += "list of targeting Inhibitor Arcs: "
-        for arc in self.inhibArcs:
-            returnString += f"{str(arc)},\n"
+            f"Timed Transition\n"
+            f"\tname: {self.name},\n"
+            f"\tin Petri Net named: {self.petriNet.name},\n"
+            f"\twith guard function: {self.guard},\n"
+            f"\tcurrently enabled: {self.enabled},\n"
+            f"\twith distribution type: {self.distType},\n"
+            f"\tdistribution arguments: {self.a}, {self.b}, {self.c}, {self.d},\n"
+            f"\tcurrent firing delay: {self.delay},\n"
+            f"\ttime unit: {self.timeUnitType},\n"
+            f"\tage policy: {self.agePolicy},\n"
+            f"\tcurrent firing times: {self.fireCount},\n"
+            f"\tnumber of targeting Input Arcs: {len(self.inputArcs)},\n"
+            "\tlist of targeting Input Arcs:\n")
+        if(len(self.inputArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.inputArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
+        returnString += f"\tnumber of originating Output Arcs: {len(self.outputArcs)},\n"
+        returnString += "\tlist of originating Output Arcs:\n"
+        if(len(self.outputArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.outputArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
+        returnString += f"\tnumber of targeting Inhibitor Arcs: {len(self.inhibArcs)},\n"
+        returnString += "\tlist of targeting Inhibitor Arcs:\n"
+        if(len(self.inhibArcs) == 0):
+            returnString += '\t\t' + 'None' + '\n'
+        else:
+            for arc in self.inhibArcs:
+                returnString += '\t\t' + \
+                    '\t\t'.join(str(arc).splitlines(True)) + '\n'
 
         return returnString
+
+    # TODO: delete getter setters, not needed?
+    #
+    #
+    #
 
     # NAME
     def setName(self, newName: str):
@@ -156,7 +198,7 @@ class TimedTransition:
         Setter function for name of Timed Transition.
         @param newName: New name for Timed Transition, must be string, must be unique in assigned Petri Net
         '''
-        if (checkName(self.petriNet, newName)):
+        if (_checkName(self.petriNet, newName)):
             self.name = newName
         else:
             raise Exception(
@@ -246,7 +288,7 @@ class TimedTransition:
         @param *inputArcList: New tuple of Input Arcs to be added to Timed Transition's Input Arc list, must be a tuple of instances of class Input Arc, Input Arcs must be assigned to same Petri Net instance
         '''
         for arc in inputArcList:
-            if(checkType(arc) != "InputArc"):
+            if(_checkType(arc) != "InputArc"):
                 raise Exception(
                     "Timed Transition's new Input Arc list's elements must be instances of class Input Arc")
             if(arc.petriNet != self.petriNet):
@@ -281,7 +323,7 @@ class TimedTransition:
         Note: this function adds one new Input Arc to the Timed Transition's Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInputArcs.
         @param newInputArc: New Input Arc to be added to Timed Transition's Input Arc list, must be instance of class Input Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newInputArc) != "InputArc"):
+        if(_checkType(newInputArc) != "InputArc"):
             raise Exception(
                 "Timed Transition's new Input Arc must be instance of class Input Arc")
         if(newInputArc.petriNet != self.petriNet):
@@ -301,7 +343,7 @@ class TimedTransition:
         @param *outputArcList: New tuple of Output Arcs to be added to Timed Transition's Output Arc list, must be a tuple of instances of class Output Arc, Output Arcs must be assigned to same Petri Net instance
         '''
         for arc in outputArcList:
-            if(checkType(arc) != "OutputArc"):
+            if(_checkType(arc) != "OutputArc"):
                 raise Exception(
                     "Timed Transition's new Output Arc list's elements must be instances of class Output Arc")
             if(arc.petriNet != self.petriNet):
@@ -336,7 +378,7 @@ class TimedTransition:
         Note: this function adds one new Output Arc to the Timed Transition's Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutputArcs.
         @param newOutputArc: New Output Arc to be added to Timed Transition's Output Arc list, must be instance of class Output Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newOutputArc) != "OutputArc"):
+        if(_checkType(newOutputArc) != "OutputArc"):
             raise Exception(
                 "Timed Transition's new Output Arc must be instance of class Output Arc")
         if(newOutputArc.petriNet != self.petriNet):
@@ -356,7 +398,7 @@ class TimedTransition:
         @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Timed Transition's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc, Inhibitor Arcs must be assigned to same Petri Net instance
         '''
         for arc in inhibArcList:
-            if(checkType(arc) != "InhibArc"):
+            if(_checkType(arc) != "InhibArc"):
                 raise Exception(
                     "Timed Transition's new Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
             if(arc.petriNet != self.petriNet):
@@ -391,7 +433,7 @@ class TimedTransition:
         Note: this function adds one new Inhibitor Arc to the Timed Transition's Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInhibArcs.
         @param newInhibArc: New Inhibitor Arc to be added to Timed Transition's Inhibitor Arc list, must be instance of class Inhibitor Arc, must be assigned to same Petri Net instance
         '''
-        if(checkType(newInhibArc) != "InhibArc"):
+        if(_checkType(newInhibArc) != "InhibArc"):
             raise Exception(
                 "Timed Transition's new Inhibitor Arc must be instance of class Inhibitor Arc")
         if(newInhibArc.petriNet != self.petriNet):
@@ -404,12 +446,12 @@ class TimedTransition:
         self.inhibArcs.append(newInhibArc)
 
 
-def checkName(petriNet, name):
+def _checkName(petriNet, name):
     for trans in petriNet.timedTransList:
         if (trans.name == name):
             return False
     return True
 
 
-def checkType(object):
+def _checkType(object):
     return object.__class__.__name__

@@ -5,7 +5,7 @@ from definitions.timeunit_types import TimeUnitType, getTimeMultiplier
 from datetime import datetime
 
 
-def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: TimeUnitType = 'sec', logPath: str = './logs'):
+def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: TimeUnitType = 'sec', conditionals=None, logPath: str = './logs'):
 
     # TODO: make typecheck for Petri Net param + other params!
     # default time unit setting of simulation
@@ -54,6 +54,9 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
     # start global timer
     globalTimer = 0.0
 
+    # set simulation step counter
+    simStepCounter = 0
+
     # Future Event List, for logging purpose
     FEL = []
 
@@ -70,6 +73,24 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
     prevMarking = ''
     prevTS = 0.0
 
+    # counter for occurrence of conditionals
+    cond_count = []
+    if(conditionals is not None):
+        for cond in conditionals:
+            cond_count.append(0)
+
+    # Conditions total time list, used to record statistics of time of conditionals
+    cond_time = []
+    if(conditionals is not None):
+        for cond in conditionals:
+            cond_time.append(0.0)
+
+    # list of previous state of conditionals
+    cond_prevVal = []
+    if(conditionals is not None):
+        for cond in conditionals:
+            cond_prevVal.append(False)
+
     # discover and store references & probabilities for competing immediate transitions
     competitiveTransList, competitiveProbabilities = checkCompetitiveTransitions(
         PetriNet)
@@ -83,6 +104,9 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
             print('Simulation time: ' + str(globalTimer) +
                   ' ' + defTimeUnit, file=f)
             print('Simulation time: ' + str(globalTimer) + ' ' + defTimeUnit)
+            simStepCounter += 1
+            print('Simulation step: ' + str(simStepCounter), file=f)
+            print('Simulation step: ' + str(simStepCounter))
 
         # lists to store enabled transitions to choose from at each simulation step (overwritten after every execution)
         enabledTransitions = []
@@ -215,8 +239,6 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
         if(prevMarking in PNmarkings):
             markings_time[PNmarkings.index(
                 prevMarking)] += (globalTimer - prevTS)
-        prevMarking = currentMarking
-        prevTS = globalTimer
 
         currentStateString += '\n\tOccurred markings, nbr. of occurrence, total time spent in marking, and percentage of time spent in marking:\n'
 
@@ -228,11 +250,44 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
             else:
                 currentStateString += str(markings_time[id]/globalTimer) + '\n'
 
+        # if additional conditions were defined, check if they're satisfied by the current marking and create log
+        currentStateString += '\n\tAdditional user defined conditions, current value, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, and percentage of time spent while true:\n'
+        if(conditionals is None):
+            currentStateString += '\t\tNone\n'
+        else:
+            for id, cond in enumerate(conditionals):
+                currentStateString += '\t\t' + str(cond[0]) + ': '
+                cond_fail = False
+                for func_nbr in range(0, (len(cond) - 1)):
+                    if(not cond[func_nbr+1]()):
+                        cond_fail = True
+                        break
+                if(cond_prevVal[id]):
+                    cond_time[id] += globalTimer - prevTS
+                if(cond_fail):
+                    cond_prevVal[id] = False
+                    currentStateString += 'False, '
+                else:
+                    cond_count[id] += 1
+                    cond_prevVal[id] = True
+                    currentStateString += 'True, '
+                currentStateString += str(cond_count[id]) + ', ' + str(
+                    cond_count[id]) + ' / ' + str(simStepCounter) + ' (=' + str(cond_count[id]/simStepCounter) + ')' +\
+                    ', ' + str(cond_time[id]) + ', '
+                if(globalTimer == 0.0):
+                    currentStateString += 'N/A\n'
+                else:
+                    currentStateString += str(cond_time[id]/globalTimer) + '\n'
+
         writeSimulationFile(currentStateString, filename_txt)
 
         # log current marking to csv file
         with open(filename_csv, 'a') as f:
             print(svcString, file=f)
+
+        # update variables used to track previous step in simulation
+        prevMarking = currentMarking
+        prevTS = globalTimer
 
         # advance global timer to reach the next firing
         # simulation end time reached, stop simulation
