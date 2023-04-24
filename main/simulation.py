@@ -251,7 +251,7 @@ def simulation(PetriNet, simLength: int, randomSeed: int = 1337, verbose: int = 
                 currentStateString += str(markings_time[id]/globalTimer) + '\n'
 
         # if additional conditions were defined, check if they're satisfied by the current marking and create log
-        currentStateString += '\n\tAdditional user defined conditions, current value, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, and percentage of time spent while true:\n'
+        currentStateString += '\n\tAdditional conditions, current value, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, and percentage of time spent while true:\n'
         if(conditionals is None):
             currentStateString += '\t\tNone\n'
         else:
