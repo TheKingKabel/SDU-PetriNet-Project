@@ -14,8 +14,6 @@ class TimeUnitType(Enum):
     hr = "hour"
     d = "day"
     w = "week"
-    m = "month"
-    y = "year"
 
 
 timerank = ['n_sec', 'mic_sec', 'mil_sec', 'sec', 'min', 'hr', 'd', 'w']
