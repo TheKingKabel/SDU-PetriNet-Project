@@ -1,6 +1,6 @@
 from main.PetriNet import *
 
-bank = PetriNet("Bank")
+bank = PetriNet("SimpleBank")
 
 TEnter = TimedTransition("TEnter", bank, "NORM", 5.0, 25.0, timeUnitType='min')
 TWait = ImmediateTransition("TWait", bank)
@@ -19,19 +19,7 @@ INPPServiceTService = InputArc("INPPServiceTService", bank, PService, TService)
 INHPServiceTWait = InhibArc("INHPServiceTWait", bank, PService, TWait)
 
 
-def serverBusy():
-    return PService.tokens >= 1
-
-
-def bigQueue():
-    return PQueue.tokens >= 4
-
-
-def exactQueue():
-    return PQueue.tokens == 2
-
-
-bank.runSimulation(6, defTimeUnit='hr', conditionals=[
-                   ('Busy bank teller', serverBusy), ('Lot of customers', bigQueue), ('Queue of customers is exactly 2', exactQueue)])
+# bank.runSimulations(10, 6, 0, defTimeUnit='hr')
+bank.runSimulations(5, 8, 0, defTimeUnit='hr')
 
 # bank.describe()

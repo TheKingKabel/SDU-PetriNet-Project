@@ -2,6 +2,7 @@
 # contains class definition for object type Petri Net
 # TODO: to be imported to users' project modules
 
+import random
 from components.immediateTransition import ImmediateTransition
 from components.timedTransition import TimedTransition
 from components.place import Place
@@ -9,6 +10,7 @@ from components.inputArc import InputArc
 from components.outputArc import OutputArc
 from components.inhibArc import InhibArc
 from .simulation import simulation
+from datetime import datetime
 
 # list of user created Petri Net's (in active module)
 petriNetList = []
@@ -134,7 +136,7 @@ class PetriNet:
             returnString += '\n' + str(inhibArc)
         return returnString
 
-    def runSimulation(self, simLength: float, randomSeed: int = 1337, verbose: int = 1,  defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
+    def runSimulations(self, expLength: int, simLength: float, verbose: int = 1, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
         # TODO: randomSeed, verbose ?
         '''
         Method to run a simulation on the Petri Net.
@@ -145,5 +147,41 @@ class PetriNet:
             @param conditionals: Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to a callable functions defined in the user file, returning boolean value True or False, i.e. "Server.tokens >= 1". If not applicable, must be set to None. Default value: None.
             @param logPath (optional): Path of the folder where the simulation result logs will be generated in. Default value: root/logs/.
         '''
-        simulation(self, simLength, randomSeed, verbose,
-                   defTimeUnit, conditionals, logPath)
+
+        expSeeds = []
+
+        if(randomSeed is not None):
+            try:
+                random.seed(randomSeed)
+            except:
+                raise Exception(
+                    "The value: " + randomSeed + ", given as random seed is invalid.")
+        else:
+            randomSeed = random.randrange(2**32 - 1)
+            random.seed(randomSeed)
+
+        print(str(self.name) + " Petri Net experiment, seed: " + str(randomSeed))
+        print("Experiments seeds " + "(" + str(expLength) + "):")
+        for i in range(expLength):
+            seed = random.randrange(2**32 - 1)
+            expSeeds.append(seed)
+            print("\t" + str(i+1) + ". exp. seed.:" + str(seed))
+
+        print('\n')
+
+        exp_start = datetime.now()
+        print("Experiments started at: " + str(exp_start) + "\n")
+
+        for experiment in range(expLength):
+            start = datetime.now()
+            print(str(experiment+1) + ". experiment run, seed: " + str(expSeeds[experiment]) + ", started at: " +
+                  str(start) + "\n")
+            simulation(
+                self, simLength, expSeeds[experiment], verbose, defTimeUnit, conditionals, logPath)
+            end = datetime.now()
+            print("Experiment run finished at: " + str(datetime.now()))
+            print("Elapsed time: " + str(end - start) + "\n")
+
+        exp_end = datetime.now()
+        print("Experiments ended at: " + str(exp_end))
+        print("Elapsed time: " + str(exp_end-exp_start) + "\n")
