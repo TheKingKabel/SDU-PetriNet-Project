@@ -3,13 +3,17 @@
 # TODO: to be imported to users' project modules
 
 import random
+import os
+import copy
 from components.immediateTransition import ImmediateTransition
 from components.timedTransition import TimedTransition
 from components.place import Place
 from components.inputArc import InputArc
 from components.outputArc import OutputArc
 from components.inhibArc import InhibArc
+from definitions.timeunit_types import TimeUnitType
 from .simulation import simulation
+from .generateLogs import generatePNDescription, generatePNML, generateLogFile
 from datetime import datetime
 
 # list of user created Petri Net's (in active module)
@@ -137,51 +141,164 @@ class PetriNet:
         return returnString
 
     def runSimulations(self, expLength: int, simLength: float, verbose: int = 1, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
-        # TODO: randomSeed, verbose ?
+        # TODO: verbose ?
         '''
         Method to run a simulation on the Petri Net.
         Arguments:
-            @param simLength: Time length of the simulation. Must be float, must not be smaller than 0.
-            @param randomSeed:
-            @param defTimeUnit (optional): Default time unit used in the simulation and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
-            @param conditionals: Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to a callable functions defined in the user file, returning boolean value True or False, i.e. "Server.tokens >= 1". If not applicable, must be set to None. Default value: None.
-            @param logPath (optional): Path of the folder where the simulation result logs will be generated in. Default value: root/logs/.
+            @param expLength (required): Number of repetitions for the experiment to run individual simulations. Must be integer, must be greater than 0.
+            @param simLength (required): Time length of simulations. Must be float, must not be smaller than 0.
+            @param verbose (optional): Verbosity of log displayed in terminal (all results are generated into files regardless). Must be integer, must be greater or equal than 0. If set to 0: low verbosity, if higher than 0: high verbosity. Default value: 1.
+            @param randomSeed (optional): Seed for the experiment to generate seeds for random choices and delay generations for individual simulation runs. Must be integer number between 0 and 2**32 - 1. Default value: randomly generated 32 bit sized integer value.
+            @param defTimeUnit (optional): Default time unit used in the simulations and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
+            @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to callable functions defined in the user file, returning boolean value True or False, i.e. "Server.tokens >= 1". If not applicable, must be set to None. Default value: None.
+            @param logPath (optional): Path of the folder where the experiment result logs will be generated in (creates logs folder at destination). Default value: project root/logs/.
         '''
 
+        # Type checking
+        # experiment length
+        if(not expLength.__class__.__name__ == 'int'):
+            raise Exception(
+                "The value: " + expLength + ", given as experiment length must be an integer.")
+        elif(expLength <= 0):
+            raise Exception(
+                "The value: " + expLength + ", given as experiment length must be greater than 0.")
+
+        # simulation length
+        if(not(simLength.__class__.__name__ == 'int' or simLength.__class__.__name__ == 'float')):
+            raise Exception(
+                "The value: " + simLength + ", given as time length of simulations must be an integer or float number.")
+        elif(simLength <= 0):
+            raise Exception(
+                "The value: " + simLength + ", given as time length of simulations must be greater than 0.")
+
+        # verbose
+        # TODO: add multiple verbose options?
+        if(not (verbose == 0 or verbose == 1)):
+            raise Exception(
+                "The value: " + verbose + ", given as verbosity setting is not 0 or 1.")
+
+        # random experiment seed
+        # list of simulation seeds for replicability
         expSeeds = []
 
+        # set seed for generation of simulation seeds
         if(randomSeed is not None):
+            if(not randomSeed.__class__.__name__ == 'int'):
+                raise Exception(
+                    "The value: " + randomSeed + ", given as random seed for experiment must be an integer.")
+            elif(randomSeed < 0 or randomSeed > (2**32 - 1)):
+                raise Exception(
+                    "The value: " + randomSeed + ", given as random seed for experiment must be between 0 and 2**32 - 1 (4294967295)")
             try:
                 random.seed(randomSeed)
             except:
                 raise Exception(
                     "The value: " + randomSeed + ", given as random seed is invalid.")
         else:
-            randomSeed = random.randrange(2**32 - 1)
+            # numpy accepts 32 bit sized integer values for seed
+            randomSeed = random.randrange(2**32)
             random.seed(randomSeed)
 
-        print(str(self.name) + " Petri Net experiment, seed: " + str(randomSeed))
-        print("Experiments seeds " + "(" + str(expLength) + "):")
-        for i in range(expLength):
-            seed = random.randrange(2**32 - 1)
-            expSeeds.append(seed)
-            print("\t" + str(i+1) + ". exp. seed.:" + str(seed))
+        # default time unit setting of simulations
+        timeTypes = [member.name for member in TimeUnitType]
 
-        print('\n')
+        if(defTimeUnit not in timeTypes):
+            returnMsg = "The default time unit type set for simulation of Petri Net named: " + \
+                PetriNet.name + " is not defined.\nSupported time unit types: "
+            for member in TimeUnitType:
+                returnMsg += '[' + member.name + \
+                    ": " + member.value + '], '
+            raise Exception(
+                returnMsg)
 
+        # conditionals
+        if(conditionals is not None):
+            for condition in conditionals:
+                cond_error = False
+                wrong_func = -1
+                for func_nbr in range(0, len(condition)-1):
+                    if(not condition[func_nbr+1]().__class__.__name__ == 'bool'):
+                        cond_error = True
+                        wrong_func = func_nbr+1
+                        break
+                if(cond_error):
+                    returnMsg = "The function reference: " + \
+                        str(condition[wrong_func].__name__) + \
+                        ', in conditional: ' + \
+                        '(\'' + str(condition[0]) + '\', '
+                    for func_nbr in range(0, len(condition)-1):
+                        returnMsg += str(condition[func_nbr+1].__name__)
+                        if(not func_nbr+1 == (len(condition)-1)):
+                            returnMsg += ', '
+                    returnMsg += ') does not return boolean value.'
+                    raise Exception(returnMsg)
+
+        # logPath
+        if(not logPath == './logs'):
+            logPath = logPath + '/logs'
+            if (not os.path.exists(os.path.dirname(logPath))):
+                try:
+                    os.makedirs(os.path.dirname(logPath))
+                except:
+                    raise Exception(
+                        "The given path: " + logPath + " is invalid, couldn\'t create logs folder.")
+
+        # generate .txt description and .pnml file from model
+        PNDescFileName = logPath + '/' + self.name + '/' + self.name + '_PetriNet.txt'
+        generatePNDescription(self, PNDescFileName)
+        # TODO:
+        pnmlFileName = logPath + '/' + self.name + '/' + self.name + '_PetriNet.pnml'
+        generatePNML(self, pnmlFileName)
+
+        # save the starting timestamp of experiment
         exp_start = datetime.now()
-        print("Experiments started at: " + str(exp_start) + "\n")
 
+        # filename and logpath to create experiment logs
+        experimentFolderPath = logPath + '/' + self.name + '/Experiment_' + \
+            exp_start.strftime("%Y-%m-%d-%H-%M-%S-%f") + '/'
+        experimentFileName = experimentFolderPath + \
+            self.name + '_Experiment_Results.txt'
+
+        # create and start logging experiment
+        generateLogFile(str(self.name) + " Petri Net experiment, seed: " +
+                        str(randomSeed) + "\n\nSimulations' seeds (" + str(expLength) + "):", experimentFileName, verbose)
+        for i in range(expLength):
+            seed = random.randrange(2**32)
+            expSeeds.append(seed)
+            generateLogFile(
+                "\t" + str(i+1) + ". sim. seed.: " + str(seed), experimentFileName, verbose)
+
+        generateLogFile("\nExperiment started at: " +
+                        str(exp_start) + "\n", experimentFileName, verbose)
+        # logpath to create single simulation logs
+        simulationsFolderPath = experimentFolderPath + 'Simulation_results' + '/'
+
+        # run simulations according to experiment length
         for experiment in range(expLength):
-            start = datetime.now()
-            print(str(experiment+1) + ". experiment run, seed: " + str(expSeeds[experiment]) + ", started at: " +
-                  str(start) + "\n")
-            simulation(
-                self, simLength, expSeeds[experiment], verbose, defTimeUnit, conditionals, logPath)
-            end = datetime.now()
-            print("Experiment run finished at: " + str(datetime.now()))
-            print("Elapsed time: " + str(end - start) + "\n")
 
+            # record timestamp of simulation run start (for statistics)
+            start = datetime.now()
+
+            generateLogFile('\t' + str(experiment+1) + ". simulation run, seed: " + str(expSeeds[experiment]) + ", started at: " +
+                            str(start), experimentFileName, verbose)
+
+            # filename to create single simulation log
+            simulationFolderName = simulationsFolderPath + \
+                'Sim_Run' + str(experiment+1) + '/'
+
+            # run individual simulation with given parameters
+            simulation(
+                copy.deepcopy(self), simLength, expSeeds[experiment], verbose, defTimeUnit, conditionals, simulationFolderName, experiment+1)
+
+            # record timestamp of simulation run end (for statistics)
+            end = datetime.now()
+
+            # write results of simulation run to experiment log
+            generateLogFile(
+                "\n\tSimulation run finished at: " + str(datetime.now()) + "\n\tElapsed time: " + str(end - start) + "\n", experimentFileName, verbose)
+
+        # save the ending timestamp of experiment
         exp_end = datetime.now()
-        print("Experiments ended at: " + str(exp_end))
-        print("Elapsed time: " + str(exp_end-exp_start) + "\n")
+
+        generateLogFile("Experiment ended at: " + str(exp_end) + "\nElapsed time: " +
+                        str(exp_end-exp_start) + "\n", experimentFileName, verbose)

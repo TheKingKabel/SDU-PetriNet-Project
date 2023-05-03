@@ -7,7 +7,8 @@ WaitingRoom = Place("WaitingRoom", hospital)
 LeaveNoTreat = Place("LeaveNoTreat", hospital)
 LeaveTreat = Place("LeaveTreat", hospital)
 
-Arrival = TimedTransition("Arrival", hospital, "EXP", 1.0, 5.0)
+Arrival = TimedTransition("Arrival", hospital, "EXP",
+                          1.0, 5.0, timeUnitType='hr')
 
 
 def CanWaitGuard():
@@ -20,7 +21,8 @@ def CantWaitGuard():
 
 CanWait = ImmediateTransition("CanWait", hospital, CanWaitGuard)
 CantWait = ImmediateTransition("CantWait", hospital, CantWaitGuard)
-Treatment = TimedTransition("Treatment", hospital, 'NORM', 2.0, 6.0)
+Treatment = TimedTransition("Treatment", hospital,
+                            'NORM', 2.0, 6.0, timeUnitType='hr')
 
 OUTArrivalArrived = OutputArc(
     "OUTArrivalArrived", hospital, Arrival, Arrived)
@@ -46,5 +48,5 @@ def roomEmpty():
     return WaitingRoom.tokens == 0
 
 
-hospital.runSimulation(80, conditionals=[(
+hospital.runSimulations(5, 80, 1, 1337, 'hr', [(
     'Waiting room is full', roomFull), ('Waiting room is empty', roomEmpty)])

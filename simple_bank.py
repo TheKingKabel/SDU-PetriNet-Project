@@ -7,7 +7,7 @@ TWait = ImmediateTransition("TWait", bank)
 TService = TimedTransition("TService", bank, 'NORM',
                            0.083, 0.25, timeUnitType='hr')
 
-PQueue = Place("PQueue", bank, 2)
+PQueue = Place("PQueue", bank, 3)
 PService = Place("PService", bank, 1)
 
 OUTTEnterPQueue = OutputArc("OUTTEnterPQueue", bank, TEnter, PQueue)
@@ -20,6 +20,6 @@ INHPServiceTWait = InhibArc("INHPServiceTWait", bank, PService, TWait)
 
 
 # bank.runSimulations(10, 6, 0, defTimeUnit='hr')
-bank.runSimulations(5, 8, 0, defTimeUnit='hr')
+bank.runSimulations(2, 1, 1, 1337, defTimeUnit='hr')
 
 # bank.describe()
