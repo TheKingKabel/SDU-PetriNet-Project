@@ -55,34 +55,53 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
     # counter for occurrence of conditionals
     cond_count = []
+    # Conditions total time list, used to record statistics of time of conditionals
+    cond_time = []
+    # list of previous state of conditionals
+    cond_prevVal = []
+    # variables to store the return values of simulation (ending marking, conditional results)
+    returnCondCounts = []
+    returnCondRatios = []
+    returnCondTotalTimes = []
+    returnCondTimeRatios = []
+
+    returnMarking = ''
+    returnMarkingCount = 0
+    returnMarkingTotalTime = 0.0
+    returnMarkingTimeRatio = 0.0
+
     if(conditionals is not None):
         for cond in conditionals:
             cond_count.append(0)
-
-    # Conditions total time list, used to record statistics of time of conditionals
-    cond_time = []
-    if(conditionals is not None):
-        for cond in conditionals:
             cond_time.append(0.0)
-
-    # list of previous state of conditionals
-    cond_prevVal = []
-    if(conditionals is not None):
-        for cond in conditionals:
             cond_prevVal.append(False)
+
+            returnCondCounts.append(0)
+            returnCondRatios.append(0.0)
+            returnCondTotalTimes.append(0.0)
+            returnCondTimeRatios.append(0.0)
 
     # discover and store references & probabilities for competing immediate transitions
     competitiveTransList, competitiveProbabilities = checkCompetitiveTransitions(
         PetriNet)
 
+    # boolean variable used to mark the final repetition of simulation
+    final = False
+
     # iterate until simulation (global) timer reaches defined time length, repeat for ending timestamp
     while globalTimer <= simLength:
 
-        simStepCounter += 1
+        if(not final):
+            simStepCounter += 1
 
         # start text file logging
-        generateLogFile('\nSimulation time: ' + str(globalTimer) +
-                        ' ' + defTimeUnit + '\nSimulation step: ' + str(simStepCounter), filename_txt, verbose, True)
+        logText = '\nSimulation time: ' + \
+            str(globalTimer) + ' ' + defTimeUnit + '\nSimulation step: '
+        if(not final):
+            logText += str(simStepCounter)
+        else:
+            logText += str('final')
+        generateLogFile(logText, filename_txt, verbose, True)
 
         # lists to store enabled transitions to choose from at each simulation step (overwritten after every execution)
         enabledTransitions = []
@@ -213,11 +232,21 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
             markings_time.append(0.0)
             markings_count.append(1)
         else:
-            markings_count[PNmarkings.index(currentMarking)] += 1
+            if(not final):
+                markings_count[PNmarkings.index(currentMarking)] += 1
 
         if(prevMarking in PNmarkings):
             markings_time[PNmarkings.index(
                 prevMarking)] += (globalTimer - prevTS)
+
+        # if this is final iteration, save the marking results into the return variable
+        if(final):
+            returnMarking = currentMarking
+            returnMarkingCount = markings_count[PNmarkings.index(
+                currentMarking)]
+            returnMarkingTotalTime = markings_time[PNmarkings.index(
+                prevMarking)]
+            returnMarkingTimeRatio = returnMarkingTotalTime/globalTimer
 
         currentStateString += '\n\tOccurred markings, nbr. of occurrence, total time spent in marking, and ratio of time spent in marking (percentage):\n'
 
@@ -249,7 +278,8 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
                     cond_prevVal[id] = False
                     currentStateString += 'False, '
                 else:
-                    cond_count[id] += 1
+                    if(not final):
+                        cond_count[id] += 1
                     cond_prevVal[id] = True
                     currentStateString += 'True, '
                 currentStateString += str(cond_count[id]) + ', ' + str(
@@ -262,6 +292,13 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
                     currentStateString += str(ratio) + \
                         ' (' + str(ratio * 100) + '%)\n'
 
+                # if this is final iteration, save the conditional results into the return variable
+                if(final):
+                    returnCondCounts[id] = cond_count[id]
+                    returnCondRatios[id] = cond_count[id]/simStepCounter
+                    returnCondTotalTimes[id] = cond_time[id]
+                    returnCondTimeRatios[id] = cond_time[id]/globalTimer
+
         generateLogFile(currentStateString, filename_txt, verbose, True)
 
         # log current marking to csv file
@@ -273,17 +310,19 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
         # advance global timer to reach the next firing
         # simulation end time reached, stop simulation
-        if(globalTimer == simLength):
+        if(final):
             generateLogFile(
                 '\nSimulation ended at: ' + str(simLength) + ' ' + defTimeUnit, filename_txt, verbose, True)
-            break
+            return returnMarking, returnMarkingCount, returnMarkingTotalTime, returnMarkingTimeRatio, returnCondCounts, returnCondRatios, returnCondTotalTimes, returnCondTimeRatios
         # no more events in FEL: simulation ended before reaching the defined length, end simulation at defined length
         if(len(FEL) == 0):
             globalTimer = simLength
+            final = True
         else:
             # timestamp of next event in FEL exceeds simulation length, end simulation at defined length
             if(FEL[0][1] > simLength):
                 globalTimer = simLength
+                final = True
             else:
                 # advance to timestamp of next event in FEL
                 globalTimer = FEL[0][1]

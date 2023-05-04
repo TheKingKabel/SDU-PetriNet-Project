@@ -144,6 +144,7 @@ class Place:
         Resets the Place to its initial state after a simulation run.
         '''
         self.tokens = self.initTokens
+        self.prevTokens = self.tokens
         self.totalTokens = self.initTotalTokens
         self.maxTokens = self.initMaxTokens
 

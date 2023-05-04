@@ -272,6 +272,18 @@ class PetriNet:
         # logpath to create single simulation logs
         simulationsFolderPath = experimentFolderPath + 'Simulation_results' + '/'
 
+        # store final marking and statistics of each simulation run
+        finalMarking = []
+        finalMarkingCount = []
+        finalMarkingTotalTime = []
+        finalMarkingTimeRatio = []
+
+        # store the results for conditionals of each simulation run
+        conditionalCount = []
+        conditionalRatio = []
+        conditionalTotalTime = []
+        conditionalTimeRatio = []
+
         # run simulations according to experiment length
         for experiment in range(expLength):
 
@@ -285,9 +297,31 @@ class PetriNet:
             simulationFolderName = simulationsFolderPath + \
                 'Sim_Run' + str(experiment+1) + '/'
 
-            # run individual simulation with given parameters
-            simulation(
+            # run individual simulation with given parameters, save results
+            simMark, simMarkCount, simMarkTotalTime, simMarkTimeRatio, simCondCounts, simCondRatios, simCondTotalTimes, simCondTimeRatios = simulation(
                 self, simLength, expSeeds[experiment], verbose, defTimeUnit, conditionals, simulationFolderName, experiment+1)
+
+            # print final marking results
+            generateLogFile("\n\tSimulation run final marking:\n\t\tMarking, nbr. of occurrence, total time spent in marking, ratio of time spent in marking:\n\t\t\t" +
+                            str(simMark) + ': ' + str(simMarkCount) + ', ' + str(simMarkTotalTime) +
+                            ' ' + defTimeUnit + ', ' + str(simMarkTimeRatio), experimentFileName, verbose)
+
+            # print simulation conditionals results
+            logText = "\n\tSimulation run conditionals:\n\t\tAdditional conditions, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, ratio of time spent while true:\n"
+            if(conditionals is None):
+                logText += "\t\t\tNone\n"
+            else:
+                for id, cond in enumerate(conditionals):
+                    logText += '\t\t\t' + str(cond[0]) + ': ' + str(simCondCounts[id]) + ', ' + str(
+                        simCondRatios[id]) + ', ' + str(simCondTotalTimes[id]) + ' ' + defTimeUnit + ', ' + str(simCondTimeRatios[id]) + '\n'
+
+            generateLogFile(logText, experimentFileName, verbose)
+
+            # append results to their appropriate list
+            conditionalCount.append(simCondCounts)
+            conditionalRatio.append(simCondRatios)
+            conditionalTotalTime.append(simCondTotalTimes)
+            conditionalTimeRatio.append(simCondTimeRatios)
 
             # record timestamp of simulation run end (for statistics)
             end = datetime.now()
