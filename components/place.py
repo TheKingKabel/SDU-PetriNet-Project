@@ -32,6 +32,7 @@ class Place:
                             "The initial number of tokens set for Place named: " + name + " must not be smaller than 0!")
                     else:
                         self.tokens = tokens
+                        self.initTokens = tokens
                 else:
                     del self
                     raise Exception(
@@ -50,8 +51,10 @@ class Place:
                         if(tokens > totalTokens):
                             # if tokens was set, assign same value
                             self.totalTokens = tokens
+                            self.initTotalTokens = tokens
                         if(tokens <= totalTokens):
                             self.totalTokens = totalTokens
+                            self.initTotalTokens = totalTokens
                 else:
                     del self
                     raise Exception(
@@ -67,8 +70,10 @@ class Place:
                         if(tokens > maxTokens):
                             # if tokens was set, assign same value
                             self.maxTokens = tokens
+                            self.initMaxTokens = tokens
                         if(tokens <= maxTokens):
                             self.maxTokens = maxTokens
+                            self.initMaxTokens = maxTokens
                 else:
                     del self
                     raise Exception(
@@ -134,12 +139,21 @@ class Place:
 
         return returnString
 
+    def resetState(self):
+        '''
+        Resets the Place to its initial state after a simulation run.
+        '''
+        self.tokens = self.initTokens
+        self.totalTokens = self.initTotalTokens
+        self.maxTokens = self.initMaxTokens
+
     # TODO: delete getter setters, not needed?
     #
     #
     #
 
     # NAME
+
     def setName(self, newName: str):
         '''
         Setter function for name of Place.

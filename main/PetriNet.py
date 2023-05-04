@@ -4,7 +4,6 @@
 
 import random
 import os
-import copy
 from components.immediateTransition import ImmediateTransition
 from components.timedTransition import TimedTransition
 from components.place import Place
@@ -288,7 +287,7 @@ class PetriNet:
 
             # run individual simulation with given parameters
             simulation(
-                copy.deepcopy(self), simLength, expSeeds[experiment], verbose, defTimeUnit, conditionals, simulationFolderName, experiment+1)
+                self, simLength, expSeeds[experiment], verbose, defTimeUnit, conditionals, simulationFolderName, experiment+1)
 
             # record timestamp of simulation run end (for statistics)
             end = datetime.now()
@@ -296,6 +295,14 @@ class PetriNet:
             # write results of simulation run to experiment log
             generateLogFile(
                 "\n\tSimulation run finished at: " + str(datetime.now()) + "\n\tElapsed time: " + str(end - start) + "\n", experimentFileName, verbose)
+
+            # reset the Petri Net to its initial state
+            for immediateTrans in self.immediateTransList:
+                immediateTrans.resetState()
+            for timedTrans in self.timedTransList:
+                timedTrans.resetState()
+            for place in self.placeList:
+                place.resetState()
 
         # save the ending timestamp of experiment
         exp_end = datetime.now()

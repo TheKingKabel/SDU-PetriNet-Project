@@ -66,6 +66,7 @@ class ImmediateTransition:
                             "The fireCount parameter of Immediate Transition named: " + name + " must not be smaller than 0!")
                     else:
                         self.fireCount = fireCount
+                        self.initFireCount = fireCount
                 else:
                     del self
                     raise Exception(
@@ -142,12 +143,22 @@ class ImmediateTransition:
 
         return returnString
 
+    def resetState(self):
+        '''
+        Resets the Immediate Transition to its initial state after a simulation run.
+        '''
+        self.fireCount = self.initFireCount
+        self.prevFireCount = self.initFireCount
+        self.competing = False
+        self.enabled = False
+
     # TODO: delete getter setters, not needed?
     #
     #
     #
 
     # NAME
+
     def setName(self, newName: str):
         '''
         Setter function for name of Immediate Transition.
