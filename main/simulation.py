@@ -29,7 +29,7 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
         defTimeUnit + ') / Place'
     for place in PetriNet.placeList:
         csvString += ';' + place.name
-    generateLogFile(csvString, filename_csv, 0)
+    generateLogFile(csvString, filename_csv, 1)
 
     # start global timer
     globalTimer = 0.0
@@ -302,7 +302,7 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
         generateLogFile(currentStateString, filename_txt, verbose, True)
 
         # log current marking to csv file
-        generateLogFile(csvString, filename_csv, 0)
+        generateLogFile(csvString, filename_csv, 1)
 
         # update variables used to track previous step in simulation
         prevMarking = currentMarking

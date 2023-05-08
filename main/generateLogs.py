@@ -27,12 +27,13 @@ def generatePNML(petriNet, fileName: str):
 
 def generateLogFile(logText: str, logPath: str, verbose: int, tab: bool = False):
 
-    os.makedirs(os.path.dirname(logPath), exist_ok=True)
+    if (verbose > 0):
+        os.makedirs(os.path.dirname(logPath), exist_ok=True)
 
-    with open(logPath, 'a') as f:
-        print(logText, file=f)
-        if(verbose > 0):
-            if(tab):
-                print('\t'.join(logText.splitlines(True)))
-            else:
-                print(logText)
+        with open(logPath, 'a') as f:
+            print(logText, file=f)
+            if (verbose > 1):
+                if (tab):
+                    print('\t'.join(logText.splitlines(True)))
+                else:
+                    print(logText)

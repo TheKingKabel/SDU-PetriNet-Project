@@ -142,14 +142,14 @@ class PetriNet:
             returnString += '\n' + str(inhibArc)
         return returnString
 
-    def runSimulations(self, expLength: int, simLength: float, verbose: int = 1, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
+    def runSimulations(self, expLength: int, simLength: float, verbose: int = 2, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
         # TODO: verbose ?
         '''
         Method to run a simulation on the Petri Net.
         Arguments:
             @param expLength (required): Number of repetitions for the experiment to run individual simulations. Must be integer, must be greater than 0.
             @param simLength (required): Time length of simulations. Must be float, must not be smaller than 0.
-            @param verbose (optional): Verbosity of log displayed in terminal (all results are generated into files regardless). Must be integer, must be greater or equal than 0. If set to 0: low verbosity, if higher than 0: high verbosity. Default value: 1.
+            @param verbose (optional): Verbosity of log displayed in terminal and file generation. Must be integer, must be 0, 1 or 2. If set to 0: low verbosity, no log is generated to terminal, only PN .pnml, PN description, experiment log, and simulation .csv files are generated. If set to 1: medium verbosity, no log is generated to terminal, all files are generated. If set to 2: high verbosity, all logs are generated to terminal, all files are generated. Default value: 2.
             @param randomSeed (optional): Seed for the experiment to generate seeds for random choices and delay generations for individual simulation runs. Must be integer number between 0 and 2**32 - 1. Default value: randomly generated 32 bit sized integer value.
             @param defTimeUnit (optional): Default time unit used in the simulations and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
             @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to callable functions defined in the user file, returning boolean value True or False, i.e. "Server.tokens >= 1". If not applicable, must be set to None. Default value: None.
@@ -175,9 +175,13 @@ class PetriNet:
 
         # verbose
         # TODO: add multiple verbose options?
-        if (not (verbose == 0 or verbose == 1)):
+        if (not (verbose == 0 or verbose == 1 or verbose == 2)):
             raise Exception(
-                "The value: " + verbose + ", given as verbosity setting is not 0 or 1.")
+                "The value: " + verbose + ", given as verbosity setting is not 0, 1 or 2.")
+
+        file_verbose = verbose
+        if (verbose < 2):
+            file_verbose = 1
 
         # random experiment seed
         # list of simulation seeds for replicability
@@ -293,15 +297,15 @@ class PetriNet:
 
         # create and start logging experiment
         generateLogFile(str(self.name) + " Petri Net experiment, seed: " +
-                        str(randomSeed) + "\n\nSimulations' seeds (" + str(expLength) + "):", experimentFileName, verbose)
+                        str(randomSeed) + "\n\nSimulations' seeds (" + str(expLength) + "):", experimentFileName, file_verbose)
         for i in range(expLength):
             seed = random.randrange(2**32)
             expSeeds.append(seed)
             generateLogFile(
-                "\t" + str(i+1) + ". sim. seed.: " + str(seed), experimentFileName, verbose)
+                "\t" + str(i+1) + ". sim. seed.: " + str(seed), experimentFileName, file_verbose)
 
         generateLogFile("\nExperiment started at: " +
-                        str(exp_start) + "\n", experimentFileName, verbose)
+                        str(exp_start) + "\n", experimentFileName, file_verbose)
         # logpath to create single simulation logs
         simulationsFolderPath = experimentFolderPath + 'Simulation_results' + '/'
 
@@ -331,7 +335,7 @@ class PetriNet:
             start = datetime.now()
 
             generateLogFile('\t' + str(experiment+1) + ". simulation run, seed: " + str(expSeeds[experiment]) + ", started at: " +
-                            str(start), experimentFileName, verbose)
+                            str(start), experimentFileName, file_verbose)
 
             # filename to create single simulation log
             simulationFolderName = simulationsFolderPath + \
@@ -344,7 +348,7 @@ class PetriNet:
             # print final marking results
             generateLogFile("\n\tSimulation run final marking:\n\t\tMarking, nbr. of occurrence, total time spent in marking, ratio of time spent in marking:\n\t\t\t" +
                             str(simMark) + ': ' + str(simMarkCount) + ', ' + str(simMarkTotalTime) +
-                            ' ' + defTimeUnit + ', ' + str(simMarkTimeRatio), experimentFileName, verbose)
+                            ' ' + defTimeUnit + ', ' + str(simMarkTimeRatio), experimentFileName, file_verbose)
 
             # print simulation conditionals results
             logText = "\n\tSimulation run conditionals:\n\t\tAdditional conditions, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, ratio of time spent while true:\n"
@@ -368,14 +372,14 @@ class PetriNet:
                     conditionalTotalTime[id].append(simCondTotalTimes[id])
                     conditionalTimeRatio[id].append(simCondTimeRatios[id])
 
-            generateLogFile(logText, experimentFileName, verbose)
+            generateLogFile(logText, experimentFileName, file_verbose)
 
             # record timestamp of simulation run end (for statistics)
             end = datetime.now()
 
             # write results of simulation run to experiment log
             generateLogFile(
-                "\n\tSimulation run finished at: " + str(datetime.now()) + "\n\tElapsed time: " + str(end - start) + "\n", experimentFileName, verbose)
+                "\n\tSimulation run finished at: " + str(datetime.now()) + "\n\tElapsed time: " + str(end - start) + "\n", experimentFileName, file_verbose)
 
             # reset the Petri Net to its initial state
             for immediateTrans in self.immediateTransList:
@@ -423,10 +427,10 @@ class PetriNet:
         else:
             logText += "\n\tNone\n"
 
-        generateLogFile(logText, experimentFileName, verbose)
+        generateLogFile(logText, experimentFileName, file_verbose)
 
         # save the ending timestamp of experiment
         exp_end = datetime.now()
 
         generateLogFile("Experiment ended at: " + str(exp_end) + "\nElapsed time: " +
-                        str(exp_end-exp_start) + "\n", experimentFileName, verbose)
+                        str(exp_end-exp_start) + "\n", experimentFileName, file_verbose)
