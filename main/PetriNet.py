@@ -317,11 +317,12 @@ class PetriNet:
         conditionalTotalTime = []
         conditionalTimeRatio = []
 
-        for condition in conditionals:
-            conditionalCount.append([])
-            conditionalRatio.append([])
-            conditionalTotalTime.append([])
-            conditionalTimeRatio.append([])
+        if (conditionals is not None):
+            for condition in conditionals:
+                conditionalCount.append([])
+                conditionalRatio.append([])
+                conditionalTotalTime.append([])
+                conditionalTimeRatio.append([])
 
         # run simulations according to experiment length
         for experiment in range(expLength):
@@ -387,37 +388,40 @@ class PetriNet:
         # calculate confidence intervals for conditional results
 
         logText = "Conditionals' confidence interval results:\n\tConditional, T-value (alpha value%),\n\t\tmean of nbr. of occurrences, standard deviation of nbr. of occurrences, confidence interval for nbr. of occurrences,\n\t\tmean of ratio of occurrence / nbr. of states, standard deviation of ratio of occurrence / nbr. of states, confidence interval for ratio of occurrence / nbr. of states,\n\t\tmean of total time spent while true, standard deviation of total time spent while true, confidence interval for total time spent while true,\n\t\tmean of ratio of time spent while true, standard deviation of ratio of time spent while true, confidence interval for ratio of time spent while true\n"
-        for id, condition in enumerate(conditionals):
+        if (conditionals is not None):
+            for id, condition in enumerate(conditionals):
 
-            t_val = scipy.stats.t.ppf(q=1-condition[1], df=expLength)
+                t_val = scipy.stats.t.ppf(q=1-condition[1], df=expLength)
 
-            logText += "\n\t" + \
-                str(condition[0]) + ": " + str(t_val) + \
-                ' (' + str(condition[1]*100) + ' %)'
+                logText += "\n\t" + \
+                    str(condition[0]) + ": " + str(t_val) + \
+                    ' (' + str(condition[1]*100) + ' %)'
 
-            # nbr. of occurrences
-            avg = statistics.mean(conditionalCount[id])
-            std = statistics.stdev(conditionalCount[id])
-            logText += "\n\t\t" + str(avg) + ', ' + str(std) + ', CI = ' + str(
-                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
+                # nbr. of occurrences
+                avg = statistics.mean(conditionalCount[id])
+                std = statistics.stdev(conditionalCount[id])
+                logText += "\n\t\t" + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                    avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
 
-            # ratio of occurrence / nbr. of states
-            avg = statistics.mean(conditionalRatio[id])
-            std = statistics.stdev(conditionalRatio[id])
-            logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
-                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
+                # ratio of occurrence / nbr. of states
+                avg = statistics.mean(conditionalRatio[id])
+                std = statistics.stdev(conditionalRatio[id])
+                logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                    avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
 
-            # total time spent while true
-            avg = statistics.mean(conditionalTotalTime[id])
-            std = statistics.stdev(conditionalTotalTime[id])
-            logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
-                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
+                # total time spent while true
+                avg = statistics.mean(conditionalTotalTime[id])
+                std = statistics.stdev(conditionalTotalTime[id])
+                logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                    avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
 
-            # ratio of time spent while true
-            avg = statistics.mean(conditionalTimeRatio[id])
-            std = statistics.stdev(conditionalTimeRatio[id])
-            logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
-                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength))) + '\n'
+                # ratio of time spent while true
+                avg = statistics.mean(conditionalTimeRatio[id])
+                std = statistics.stdev(conditionalTimeRatio[id])
+                logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                    avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength))) + '\n'
+        else:
+            logText += "\n\tNone\n"
 
         generateLogFile(logText, experimentFileName, verbose)
 

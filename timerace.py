@@ -1,5 +1,14 @@
 from main.PetriNet import *
 
+# a simple PN showing the usability of memory policies
+# 1-1 tokens start in Start1 and Start2 Places
+# both are removed by a respective Timed Transitions; however one is slightly earlier (Early) than the other (Delayed)
+# the one event firing earlier places a token in a Hold Place which has an Inhibitor Arc targeting the slightly later Timed Transition (Delayed)
+# this puts Delayed on hold (...unless it was lucky enough to fire BEFORE Early fired)
+# the Delayed Timed Transitions has race age memory policy, therefore it will remember the passing of time whilst being disabled
+# after some time Later Timed Transition will fire, removing the token from Hold, thereby the Inhibitor Arc disabling Delayed has no longer an effect
+# now Delayed is also enabled to fire, placing the token from Start2 to Finish (...unless it hasn't reached its original firing time by the time Later fires)
+
 raceage = PetriNet("RaceAge")
 
 Start1 = Place("Start1", raceage, 1)
@@ -20,4 +29,4 @@ ToLater = InputArc("ToLater", raceage, Hold, Later)
 End1 = OutputArc("End1", raceage, Later, End)
 End2 = OutputArc("End2", raceage, Delayed, End)
 
-raceage.runSimulation(35)
+raceage.runSimulations(10, 35)

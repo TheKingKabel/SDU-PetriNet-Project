@@ -1,5 +1,9 @@
 from main.PetriNet import *
 
+# a considerably more complex PN, showing forking capabilities of library
+# for modelled PN check:
+# https://www.researchgate.net/profile/Javier-Campos-2/publication/33419600/figure/fig11/AS:651149526978564@1532257553483/Petri-net-model-of-a-fork-join-multitasking-process.png
+
 fork = PetriNet("Forking")
 
 P_Start = Place("P_Start", fork, 10)
@@ -171,4 +175,4 @@ P_End = Place("P_End", fork)
 OA_End = OutputArc("OA_End", fork, IT_End, P_End)
 
 
-fork.runSimulation(100)
+fork.runSimulations(10, 100)

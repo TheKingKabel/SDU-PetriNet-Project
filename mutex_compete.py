@@ -1,5 +1,8 @@
 from main.PetriNet import *
 
+# a basic Mutually Exclusive experiment with PN modelling
+# taking IT1 or IT2 (competing) Immediate Transitions is a coin flip (50-50%) decision
+
 mutex = PetriNet("MUTEX compete")
 
 Choice = Place("Choice", mutex, 50)
@@ -25,4 +28,4 @@ IA22 = InputArc("IA22", mutex, Wait2, TT2)
 OA21 = OutputArc("OA21", mutex, TT1, Choice)
 OA22 = OutputArc("OA22", mutex, TT2, Choice)
 
-mutex.runSimulation(50)
+mutex.runSimulations(10, 50)

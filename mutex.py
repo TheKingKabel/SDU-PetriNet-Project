@@ -1,5 +1,11 @@
 from main.PetriNet import *
 
+# slightly modified version of mutex_compete
+# the two Immediate Transitions strictly speaking are not competing; HOWEVER...
+# ...as events are randomly chosen from a list of all executable events enabled at a given time, they are in fact competing
+# in the case of two Immediate Transitions having their input the same Place, the sequence at they fire is a coin-flip decisions (50-50%)
+# with enough replications, it should provide similar results to mutex_compete
+
 mutex = PetriNet("MUTEX")
 
 Choice = Place("Choice", mutex, 50)
@@ -25,7 +31,5 @@ IA22 = InputArc("IA22", mutex, Wait2, TT2)
 OA21 = OutputArc("OA21", mutex, TT1, Choice)
 OA22 = OutputArc("OA22", mutex, TT2, Choice)
 
-# mutex.runSimulation(50)
-
-
-mutex.describe()
+mutex.runSimulations(10, 50)
+# mutex.describe()

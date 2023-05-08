@@ -1,12 +1,14 @@
 from main.PetriNet import *
 
+# a simple PN consisting of mainly competing Immediate Transitions
+# PN starts with a single StartP Place holding 1000 tokens
+# the competing Immediate Transitions have different set probabilities of firing
+# check logs to verify firings are consistent with set probability!
+
+
 competition = PetriNet("Competition")
 
-# Start = TimedTransition("Start", competition, "NORM", 1.0, 10.0)
-
 StartP = Place('StartP', competition, 1000)
-
-# StartT = OutputArc('StartT', competition, Start, StartP)
 
 TWait1 = ImmediateTransition("TWait1", competition, None, 0.25)
 TWait2 = ImmediateTransition("TWait2", competition, None, 0.25)
@@ -40,6 +42,5 @@ Inter42 = OutputArc('Inter42', competition, TWait22, Final)
 Inter43 = OutputArc('Inter43', competition, TWait23, Final)
 Inter44 = OutputArc('Inter44', competition, TWait24, Final)
 
-
-# competition.runSimulation(35)
-competition.describe()
+# Pn only has Immediate Transitions, simLength is redundant: all events are executed at time 0.0, then clock is advanced to 123 seconds
+competition.runSimulations(10, 123, 0)
