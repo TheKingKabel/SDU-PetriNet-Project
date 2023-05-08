@@ -70,7 +70,7 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
     returnMarkingTotalTime = 0.0
     returnMarkingTimeRatio = 0.0
 
-    if(conditionals is not None):
+    if (conditionals is not None):
         for cond in conditionals:
             cond_count.append(0)
             cond_time.append(0.0)
@@ -91,13 +91,13 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
     # iterate until simulation (global) timer reaches defined time length, repeat for ending timestamp
     while globalTimer <= simLength:
 
-        if(not final):
+        if (not final):
             simStepCounter += 1
 
         # start text file logging
         logText = '\nSimulation time: ' + \
             str(globalTimer) + ' ' + defTimeUnit + '\nSimulation step: '
-        if(not final):
+        if (not final):
             logText += str(simStepCounter)
         else:
             logText += str('final')
@@ -124,7 +124,7 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
         # log executed events (if applicable) to text file
         logText = '\n\tExecuted events:'
-        if(len(enabledTransitions) == 0):
+        if (len(enabledTransitions) == 0):
             logText += '\n\t\tNone'
 
         generateLogFile(logText, filename_txt, verbose, True)
@@ -161,11 +161,11 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
         # log FEL to text file
         FELstring = '\n\t' + 'Future Event List:\n\t\t'
-        if(len(FEL) > 0):
+        if (len(FEL) > 0):
             for id, event in enumerate(FEL):
                 FELstring += '(' + str(event[0].name) + \
                     ', ' + str(event[1]) + ' ' + defTimeUnit + ')'
-                if(not id == (len(FEL)-1)):
+                if (not id == (len(FEL)-1)):
                     FELstring += ', '
         else:
             FELstring += 'None'
@@ -227,20 +227,20 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
         currentMarking += ')'
 
-        if(currentMarking not in PNmarkings):
+        if (currentMarking not in PNmarkings):
             PNmarkings.append(currentMarking)
             markings_time.append(0.0)
             markings_count.append(1)
         else:
-            if(not final):
+            if (not final):
                 markings_count[PNmarkings.index(currentMarking)] += 1
 
-        if(prevMarking in PNmarkings):
+        if (prevMarking in PNmarkings):
             markings_time[PNmarkings.index(
                 prevMarking)] += (globalTimer - prevTS)
 
         # if this is final iteration, save the marking results into the return variable
-        if(final):
+        if (final):
             returnMarking = currentMarking
             returnMarkingCount = markings_count[PNmarkings.index(
                 currentMarking)]
@@ -253,7 +253,7 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
         for id, mark in enumerate(PNmarkings):
             currentStateString += '\t\t' + mark + ': ' + str(markings_count[id]) + ', ' + str(
                 markings_time[id]) + ' ' + defTimeUnit + ', '
-            if(globalTimer == 0.0):
+            if (globalTimer == 0.0):
                 currentStateString += 'N/A\n'
             else:
                 ratio = markings_time[id]/globalTimer
@@ -262,30 +262,30 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
         # if additional conditions were defined, check if they're satisfied by the current marking and create log
         currentStateString += '\n\tAdditional conditions, current value, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, and ratio of time spent while true (percentage):\n'
-        if(conditionals is None):
+        if (conditionals is None):
             currentStateString += '\t\tNone'
         else:
             for id, cond in enumerate(conditionals):
                 currentStateString += '\t\t' + str(cond[0]) + ': '
                 cond_fail = False
-                for func_nbr in range(0, (len(cond) - 1)):
-                    if(not cond[func_nbr+1]()):
+                for func_nbr in range(0, (len(cond) - 2)):
+                    if (not cond[func_nbr+2]()):
                         cond_fail = True
                         break
-                if(cond_prevVal[id]):
+                if (cond_prevVal[id]):
                     cond_time[id] += globalTimer - prevTS
-                if(cond_fail):
+                if (cond_fail):
                     cond_prevVal[id] = False
                     currentStateString += 'False, '
                 else:
-                    if(not final):
+                    if (not final):
                         cond_count[id] += 1
                     cond_prevVal[id] = True
                     currentStateString += 'True, '
                 currentStateString += str(cond_count[id]) + ', ' + str(
                     cond_count[id]) + ' / ' + str(simStepCounter) + ' (=' + str(cond_count[id]/simStepCounter) + ')' +\
                     ', ' + str(cond_time[id]) + ' ' + defTimeUnit + ', '
-                if(globalTimer == 0.0):
+                if (globalTimer == 0.0):
                     currentStateString += 'N/A\n'
                 else:
                     ratio = cond_time[id]/globalTimer
@@ -293,7 +293,7 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
                         ' (' + str(ratio * 100) + '%)\n'
 
                 # if this is final iteration, save the conditional results into the return variable
-                if(final):
+                if (final):
                     returnCondCounts[id] = cond_count[id]
                     returnCondRatios[id] = cond_count[id]/simStepCounter
                     returnCondTotalTimes[id] = cond_time[id]
@@ -310,17 +310,17 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
         # advance global timer to reach the next firing
         # simulation end time reached, stop simulation
-        if(final):
+        if (final):
             generateLogFile(
                 '\nSimulation ended at: ' + str(simLength) + ' ' + defTimeUnit, filename_txt, verbose, True)
             return returnMarking, returnMarkingCount, returnMarkingTotalTime, returnMarkingTimeRatio, returnCondCounts, returnCondRatios, returnCondTotalTimes, returnCondTimeRatios
         # no more events in FEL: simulation ended before reaching the defined length, end simulation at defined length
-        if(len(FEL) == 0):
+        if (len(FEL) == 0):
             globalTimer = simLength
             final = True
         else:
             # timestamp of next event in FEL exceeds simulation length, end simulation at defined length
-            if(FEL[0][1] > simLength):
+            if (FEL[0][1] > simLength):
                 globalTimer = simLength
                 final = True
             else:
@@ -342,43 +342,43 @@ def checkEnabledImmediateTrans(PetriNet):
         immediateTrans.enabled = True
 
         # check for guard value
-        if(immediateTrans.guard is not None):
-            if(immediateTrans.guard() == False):
+        if (immediateTrans.guard is not None):
+            if (immediateTrans.guard() == False):
                 immediateTrans.enabled = False
                 continue
 
         # check for inhibitor arcs blocking
-        if(len(immediateTrans.inhibArcs) > 0):
+        if (len(immediateTrans.inhibArcs) > 0):
             jump = False
             for inhib in immediateTrans.inhibArcs:
-                if(checkType(inhib.multiplicity) == 'int'):
-                    if(inhib.origin.tokens >= inhib.multiplicity):
+                if (checkType(inhib.multiplicity) == 'int'):
+                    if (inhib.origin.tokens >= inhib.multiplicity):
                         immediateTrans.enabled = False
                         jump = True
                         break
                 else:
-                    if(inhib.origin.tokens >= inhib.multiplicity()):
+                    if (inhib.origin.tokens >= inhib.multiplicity()):
                         immediateTrans.enabled = False
                         jump = True
                         break
-            if(jump):
+            if (jump):
                 continue
 
         # check for input arcs
-        if(len(immediateTrans.inputArcs) > 0):
+        if (len(immediateTrans.inputArcs) > 0):
             jump = False
             for input in immediateTrans.inputArcs:
-                if(checkType(input.multiplicity) == 'int'):
-                    if(input.fromPlace.tokens < input.multiplicity):
+                if (checkType(input.multiplicity) == 'int'):
+                    if (input.fromPlace.tokens < input.multiplicity):
                         immediateTrans.enabled = False
                         jump = True
                         break
                 else:
-                    if(input.fromPlace.tokens < input.multiplicity()):
+                    if (input.fromPlace.tokens < input.multiplicity()):
                         immediateTrans.enabled = False
                         jump = True
                         break
-            if(jump):
+            if (jump):
                 continue
 
         enabledImmediateTransList.append(immediateTrans)
@@ -396,80 +396,80 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL, simTimeUnit):
         timedTrans.enabled = True
 
         # check for guard value
-        if(timedTrans.guard is not None):
-            if(timedTrans.guard() == False):
+        if (timedTrans.guard is not None):
+            if (timedTrans.guard() == False):
                 timedTrans.enabled = False
-                if(timedTrans.agePolicy == 'R_ENABLE'):
+                if (timedTrans.agePolicy == 'R_ENABLE'):
                     timedTrans.delay = None
                 if (FEL.count((timedTrans, timedTrans.delay)) > 0):
                     FEL.remove((timedTrans, timedTrans.delay))
                 continue
 
         # check for inhibitor arcs blocking
-        if(len(timedTrans.inhibArcs) > 0):
+        if (len(timedTrans.inhibArcs) > 0):
             jump = False
             for inhib in timedTrans.inhibArcs:
-                if(checkType(inhib.multiplicity) == 'int'):
-                    if(inhib.origin.tokens >= inhib.multiplicity):
+                if (checkType(inhib.multiplicity) == 'int'):
+                    if (inhib.origin.tokens >= inhib.multiplicity):
                         timedTrans.enabled = False
-                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                        if (timedTrans.agePolicy == 'R_ENABLE'):
                             timedTrans.delay = None
                         if (FEL.count((timedTrans, timedTrans.delay)) > 0):
                             FEL.remove((timedTrans, timedTrans.delay))
                         jump = True
                         break
                 else:
-                    if(inhib.origin.tokens >= inhib.multiplicity()):
+                    if (inhib.origin.tokens >= inhib.multiplicity()):
                         timedTrans.enabled = False
-                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                        if (timedTrans.agePolicy == 'R_ENABLE'):
                             timedTrans.delay = None
                         if (FEL.count((timedTrans, timedTrans.delay)) > 0):
                             FEL.remove((timedTrans, timedTrans.delay))
                         jump = True
                         break
-            if(jump):
+            if (jump):
                 continue
 
         # check for input arcs
-        if(len(timedTrans.inputArcs) > 0):
+        if (len(timedTrans.inputArcs) > 0):
             jump = False
             for input in timedTrans.inputArcs:
-                if(checkType(input.multiplicity) == 'int'):
-                    if(input.fromPlace.tokens < input.multiplicity):
+                if (checkType(input.multiplicity) == 'int'):
+                    if (input.fromPlace.tokens < input.multiplicity):
                         timedTrans.enabled = False
-                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                        if (timedTrans.agePolicy == 'R_ENABLE'):
                             timedTrans.delay = None
                         if (FEL.count((timedTrans, timedTrans.delay)) > 0):
                             FEL.remove((timedTrans, timedTrans.delay))
                         jump = True
                         break
                 else:
-                    if(input.fromPlace.tokens < input.multiplicity()):
+                    if (input.fromPlace.tokens < input.multiplicity()):
                         timedTrans.enabled = False
-                        if(timedTrans.agePolicy == 'R_ENABLE'):
+                        if (timedTrans.agePolicy == 'R_ENABLE'):
                             timedTrans.delay = None
                         if (FEL.count((timedTrans, timedTrans.delay)) > 0):
                             FEL.remove((timedTrans, timedTrans.delay))
                         jump = True
                         break
-            if(jump):
+            if (jump):
                 continue
 
         # firing is enabled, generate delay for timed transition
-        if(timedTrans.delay is None):
+        if (timedTrans.delay is None):
             delay = generateDelay(timedTrans, simulationTime, simTimeUnit)
             FEL.append((timedTrans, delay))
             FEL.sort(key=sortDelay)
             continue
 
         # re-enabled timed transition with race age policy
-        if(timedTrans.agePolicy == 'R_AGE'):
+        if (timedTrans.agePolicy == 'R_AGE'):
             if (FEL.count((timedTrans, timedTrans.delay)) == 0):
                 FEL.append((timedTrans, timedTrans.delay))
                 FEL.sort(key=sortDelay)
 
         # check if firing delay has elapsed
-        if(timedTrans.delay > simulationTime):
+        if (timedTrans.delay > simulationTime):
             timedTrans.enabled = False
             continue
 
@@ -486,16 +486,16 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
     # building event info string for log
     eventString = (
         '\t\t' + str(eventNo) + '. event: ' + enabledTrans.name + ' ')
-    if(enabledTrans.__class__.__name__ == 'TimedTransition'):
+    if (enabledTrans.__class__.__name__ == 'TimedTransition'):
         eventString += 'timed transition '
-    elif(enabledTrans.__class__.__name__ == 'ImmediateTransition'):
+    elif (enabledTrans.__class__.__name__ == 'ImmediateTransition'):
         eventString += 'immediate transition '
     eventString += 'fired, '
 
     # remove tokens from input places according to arc multiplicity
-    if(len(enabledTrans.inputArcs) > 0):
+    if (len(enabledTrans.inputArcs) > 0):
         for input in enabledTrans.inputArcs:
-            if(checkType(input.multiplicity) == 'int'):
+            if (checkType(input.multiplicity) == 'int'):
                 input.fromPlace.tokens -= input.multiplicity
                 eventString += str(input.multiplicity)
             else:
@@ -506,9 +506,9 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
 
     # add tokens to output places according to arc multiplicity
     # update Place token statistics
-    if(len(enabledTrans.outputArcs) > 0):
+    if (len(enabledTrans.outputArcs) > 0):
         for output in enabledTrans.outputArcs:
-            if(checkType(output.multiplicity) == 'int'):
+            if (checkType(output.multiplicity) == 'int'):
                 output.toPlace.tokens += output.multiplicity
                 output.toPlace.totalTokens += output.multiplicity
                 eventString += str(output.multiplicity)
@@ -516,7 +516,7 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
                 output.toPlace.tokens += output.multiplicity()
                 output.toPlace.totalTokens += output.multiplicity()
                 eventString += str(output.multiplicity())
-            if(output.toPlace.tokens > output.toPlace.maxTokens):
+            if (output.toPlace.tokens > output.toPlace.maxTokens):
                 output.toPlace.maxTokens = output.toPlace.tokens
 
             eventString += ' tokens added to Place ' + output.toPlace.name + ', '
@@ -524,7 +524,7 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
     generateLogFile(eventString, filePath, verbose, True)
 
     # reset timer for timed transition, remove from FEL
-    if(enabledTrans.__class__.__name__ == 'TimedTransition'):
+    if (enabledTrans.__class__.__name__ == 'TimedTransition'):
         FEL.remove((enabledTrans, enabledTrans.delay))
         FEL.sort(key=sortDelay)
         enabledTrans.delay = None
@@ -587,45 +587,45 @@ def checkEnabledCompetingImmediateTrans(transList, probList):
             option.enabled = True
 
             # check for guard value
-            if(option.guard is not None):
-                if(option.guard() == False):
+            if (option.guard is not None):
+                if (option.guard() == False):
                     option.enabled = False
                     disableChoice = True
                     break
 
             # check for inhibitor arcs blocking
-            if(len(option.inhibArcs) > 0):
+            if (len(option.inhibArcs) > 0):
                 jump = False
                 for inhib in option.inhibArcs:
-                    if(checkType(inhib.multiplicity) == 'int'):
-                        if(inhib.origin.tokens >= inhib.multiplicity):
+                    if (checkType(inhib.multiplicity) == 'int'):
+                        if (inhib.origin.tokens >= inhib.multiplicity):
                             option.enabled = False
                             jump = True
                             break
                     else:
-                        if(inhib.origin.tokens >= inhib.multiplicity()):
+                        if (inhib.origin.tokens >= inhib.multiplicity()):
                             option.enabled = False
                             jump = True
                             break
-                if(jump):
+                if (jump):
                     disableChoice = True
                     break
 
             # check for input arcs
-            if(len(option.inputArcs) > 0):
+            if (len(option.inputArcs) > 0):
                 jump = False
                 for input in option.inputArcs:
-                    if(checkType(input.multiplicity) == 'int'):
-                        if(input.fromPlace.tokens < input.multiplicity):
+                    if (checkType(input.multiplicity) == 'int'):
+                        if (input.fromPlace.tokens < input.multiplicity):
                             option.enabled = False
                             jump = True
                             break
                     else:
-                        if(input.fromPlace.tokens < input.multiplicity()):
+                        if (input.fromPlace.tokens < input.multiplicity()):
                             option.enabled = False
                             jump = True
                             break
-                if(jump):
+                if (jump):
                     disableChoice = True
                     break
 

@@ -3,7 +3,10 @@
 # TODO: to be imported to users' project modules
 
 import random
+import statistics
+import math
 import os
+import scipy
 from components.immediateTransition import ImmediateTransition
 from components.timedTransition import TimedTransition
 from components.place import Place
@@ -78,7 +81,7 @@ class PetriNet:
         Returns user-friendly string representation (description) of the Places assigned to the Petri Net object.
         '''
         returnString = ''
-        if(len(self.placeList) == 0):
+        if (len(self.placeList) == 0):
             return '\tNone\n'
         for place in self.placeList:
             returnString += '\n' + str(place)
@@ -89,7 +92,7 @@ class PetriNet:
         Returns user-friendly string representation (description) of the Timed Transitions assigned to the Petri Net object.
         '''
         returnString = ''
-        if(len(self.timedTransList) == 0):
+        if (len(self.timedTransList) == 0):
             return '\tNone\n'
         for timedTrans in self.timedTransList:
             returnString += '\n' + str(timedTrans)
@@ -100,7 +103,7 @@ class PetriNet:
         Returns user-friendly string representation (description) of the Immediate Transitions assigned to the Petri Net object.
         '''
         returnString = ''
-        if(len(self.immediateTransList) == 0):
+        if (len(self.immediateTransList) == 0):
             return '\tNone\n'
         for immediateTrans in self.immediateTransList:
             returnString += '\n' + str(immediateTrans)
@@ -111,7 +114,7 @@ class PetriNet:
         Returns user-friendly string representation (description) of the Input Arcs assigned to the Petri Net object.
         '''
         returnString = ''
-        if(len(self.inputArcList) == 0):
+        if (len(self.inputArcList) == 0):
             return '\tNone\n'
         for inputArc in self.inputArcList:
             returnString += '\n' + str(inputArc)
@@ -122,7 +125,7 @@ class PetriNet:
         Returns user-friendly string representation (description) of the Output Arcs assigned to the Petri Net object.
         '''
         returnString = ''
-        if(len(self.outputArcList) == 0):
+        if (len(self.outputArcList) == 0):
             return '\tNone\n'
         for outputArc in self.outputArcList:
             returnString += '\n' + str(outputArc)
@@ -133,7 +136,7 @@ class PetriNet:
         Returns user-friendly string representation (description) of the Inhibitor Arcs assigned to the Petri Net object.
         '''
         returnString = ''
-        if(len(self.inhibList) == 0):
+        if (len(self.inhibList) == 0):
             return '\tNone\n'
         for inhibArc in self.inhibList:
             returnString += '\n' + str(inhibArc)
@@ -155,24 +158,24 @@ class PetriNet:
 
         # Type checking
         # experiment length
-        if(not expLength.__class__.__name__ == 'int'):
+        if (not expLength.__class__.__name__ == 'int'):
             raise Exception(
                 "The value: " + expLength + ", given as experiment length must be an integer.")
-        elif(expLength <= 0):
+        elif (expLength <= 0):
             raise Exception(
                 "The value: " + expLength + ", given as experiment length must be greater than 0.")
 
         # simulation length
-        if(not(simLength.__class__.__name__ == 'int' or simLength.__class__.__name__ == 'float')):
+        if (not (simLength.__class__.__name__ == 'int' or simLength.__class__.__name__ == 'float')):
             raise Exception(
                 "The value: " + simLength + ", given as time length of simulations must be an integer or float number.")
-        elif(simLength <= 0):
+        elif (simLength <= 0):
             raise Exception(
                 "The value: " + simLength + ", given as time length of simulations must be greater than 0.")
 
         # verbose
         # TODO: add multiple verbose options?
-        if(not (verbose == 0 or verbose == 1)):
+        if (not (verbose == 0 or verbose == 1)):
             raise Exception(
                 "The value: " + verbose + ", given as verbosity setting is not 0 or 1.")
 
@@ -181,11 +184,11 @@ class PetriNet:
         expSeeds = []
 
         # set seed for generation of simulation seeds
-        if(randomSeed is not None):
-            if(not randomSeed.__class__.__name__ == 'int'):
+        if (randomSeed is not None):
+            if (not randomSeed.__class__.__name__ == 'int'):
                 raise Exception(
                     "The value: " + randomSeed + ", given as random seed for experiment must be an integer.")
-            elif(randomSeed < 0 or randomSeed > (2**32 - 1)):
+            elif (randomSeed < 0 or randomSeed > (2**32 - 1)):
                 raise Exception(
                     "The value: " + randomSeed + ", given as random seed for experiment must be between 0 and 2**32 - 1 (4294967295)")
             try:
@@ -201,7 +204,7 @@ class PetriNet:
         # default time unit setting of simulations
         timeTypes = [member.name for member in TimeUnitType]
 
-        if(defTimeUnit not in timeTypes):
+        if (defTimeUnit not in timeTypes):
             returnMsg = "The default time unit type set for simulation of Petri Net named: " + \
                 PetriNet.name + " is not defined.\nSupported time unit types: "
             for member in TimeUnitType:
@@ -211,29 +214,59 @@ class PetriNet:
                 returnMsg)
 
         # conditionals
-        if(conditionals is not None):
+        if (conditionals is not None):
             for condition in conditionals:
                 cond_error = False
                 wrong_func = -1
-                for func_nbr in range(0, len(condition)-1):
-                    if(not condition[func_nbr+1]().__class__.__name__ == 'bool'):
+                # check conditional description
+                if (not condition[0].__class__.__name__ == 'str'):
+                    returnMsg = "The conditional description: " + str(condition[0]) + ", for conditional: (\'" + str(condition[0]) + \
+                        '\', alpha = ' + str(condition[1]) + ', '
+                    for func_nbr in range(0, len(condition)-2):
+                        returnMsg += str(condition[func_nbr+2].__name__)
+                        if (not func_nbr+2 == (len(condition)-2)):
+                            returnMsg += ', '
+                    returnMsg += ') is not a string.'
+                    raise Exception(returnMsg)
+                # check conditional alpha value
+                if (not (condition[1].__class__.__name__ == 'int' or condition[1].__class__.__name__ == 'float')):
+                    returnMsg = "The conditional alpha value: " + str(condition[1]) + ", for conditional: (\'" + str(condition[0]) + \
+                        '\', alpha = ' + str(condition[1]) + ', '
+                    for func_nbr in range(0, len(condition)-2):
+                        returnMsg += str(condition[func_nbr+2].__name__)
+                        if (not func_nbr+2 == (len(condition)-2)):
+                            returnMsg += ', '
+                    returnMsg += ') is not a number.'
+                    raise Exception(returnMsg)
+                if (condition[1] < 0.0 or condition[1] >= 1.0):
+                    returnMsg = "The conditional alpha value: " + str(condition[1]) + ", for conditional: (\'" + str(condition[0]) + \
+                        '\', alpha = ' + str(condition[1]) + ', '
+                    for func_nbr in range(0, len(condition)-2):
+                        returnMsg += str(condition[func_nbr+2].__name__)
+                        if (not func_nbr+2 == (len(condition)-2)):
+                            returnMsg += ', '
+                    returnMsg += ') must be greater than 0, but smaller than 1.0 (100%).'
+                    raise Exception(returnMsg)
+                for func_nbr in range(0, len(condition)-2):
+                    if (not condition[func_nbr+2]().__class__.__name__ == 'bool'):
                         cond_error = True
-                        wrong_func = func_nbr+1
+                        wrong_func = func_nbr+2
                         break
-                if(cond_error):
+                if (cond_error):
                     returnMsg = "The function reference: " + \
                         str(condition[wrong_func].__name__) + \
                         ', in conditional: ' + \
-                        '(\'' + str(condition[0]) + '\', '
-                    for func_nbr in range(0, len(condition)-1):
-                        returnMsg += str(condition[func_nbr+1].__name__)
-                        if(not func_nbr+1 == (len(condition)-1)):
+                        '(\'' + str(condition[0]) + \
+                        '\', alpha = ' + str(condition[1]) + ', '
+                    for func_nbr in range(0, len(condition)-2):
+                        returnMsg += str(condition[func_nbr+2].__name__)
+                        if (not func_nbr+2 == (len(condition)-2)):
                             returnMsg += ', '
                     returnMsg += ') does not return boolean value.'
                     raise Exception(returnMsg)
 
         # logPath
-        if(not logPath == './logs'):
+        if (not logPath == './logs'):
             logPath = logPath + '/logs'
             if (not os.path.exists(os.path.dirname(logPath))):
                 try:
@@ -284,6 +317,12 @@ class PetriNet:
         conditionalTotalTime = []
         conditionalTimeRatio = []
 
+        for condition in conditionals:
+            conditionalCount.append([])
+            conditionalRatio.append([])
+            conditionalTotalTime.append([])
+            conditionalTimeRatio.append([])
+
         # run simulations according to experiment length
         for experiment in range(expLength):
 
@@ -308,20 +347,27 @@ class PetriNet:
 
             # print simulation conditionals results
             logText = "\n\tSimulation run conditionals:\n\t\tAdditional conditions, nbr. of occurrence, ratio of occurrence / nbr. of states, total time spent while true, ratio of time spent while true:\n"
-            if(conditionals is None):
+
+            # append marking results to their appropriate list
+            finalMarking.append(simMark)
+            finalMarkingCount.append(simMarkCount)
+            finalMarkingTotalTime.append(simMarkTotalTime)
+            finalMarkingTimeRatio.append(simMarkTimeRatio)
+
+            if (conditionals is None):
                 logText += "\t\t\tNone\n"
             else:
                 for id, cond in enumerate(conditionals):
                     logText += '\t\t\t' + str(cond[0]) + ': ' + str(simCondCounts[id]) + ', ' + str(
                         simCondRatios[id]) + ', ' + str(simCondTotalTimes[id]) + ' ' + defTimeUnit + ', ' + str(simCondTimeRatios[id]) + '\n'
 
-            generateLogFile(logText, experimentFileName, verbose)
+                    # append conditional results to their appropriate list
+                    conditionalCount[id].append(simCondCounts[id])
+                    conditionalRatio[id].append(simCondRatios[id])
+                    conditionalTotalTime[id].append(simCondTotalTimes[id])
+                    conditionalTimeRatio[id].append(simCondTimeRatios[id])
 
-            # append results to their appropriate list
-            conditionalCount.append(simCondCounts)
-            conditionalRatio.append(simCondRatios)
-            conditionalTotalTime.append(simCondTotalTimes)
-            conditionalTimeRatio.append(simCondTimeRatios)
+            generateLogFile(logText, experimentFileName, verbose)
 
             # record timestamp of simulation run end (for statistics)
             end = datetime.now()
@@ -337,6 +383,43 @@ class PetriNet:
                 timedTrans.resetState()
             for place in self.placeList:
                 place.resetState()
+
+        # calculate confidence intervals for conditional results
+
+        logText = "Conditionals' confidence interval results:\n\tConditional, T-value (alpha value%),\n\t\tmean of nbr. of occurrences, standard deviation of nbr. of occurrences, confidence interval for nbr. of occurrences,\n\t\tmean of ratio of occurrence / nbr. of states, standard deviation of ratio of occurrence / nbr. of states, confidence interval for ratio of occurrence / nbr. of states,\n\t\tmean of total time spent while true, standard deviation of total time spent while true, confidence interval for total time spent while true,\n\t\tmean of ratio of time spent while true, standard deviation of ratio of time spent while true, confidence interval for ratio of time spent while true\n"
+        for id, condition in enumerate(conditionals):
+
+            t_val = scipy.stats.t.ppf(q=1-condition[1], df=expLength)
+
+            logText += "\n\t" + \
+                str(condition[0]) + ": " + str(t_val) + \
+                ' (' + str(condition[1]*100) + ' %)'
+
+            # nbr. of occurrences
+            avg = statistics.mean(conditionalCount[id])
+            std = statistics.stdev(conditionalCount[id])
+            logText += "\n\t\t" + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
+
+            # ratio of occurrence / nbr. of states
+            avg = statistics.mean(conditionalRatio[id])
+            std = statistics.stdev(conditionalRatio[id])
+            logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
+
+            # total time spent while true
+            avg = statistics.mean(conditionalTotalTime[id])
+            std = statistics.stdev(conditionalTotalTime[id])
+            logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength)))
+
+            # ratio of time spent while true
+            avg = statistics.mean(conditionalTimeRatio[id])
+            std = statistics.stdev(conditionalTimeRatio[id])
+            logText += '\n\t\t' + str(avg) + ', ' + str(std) + ', CI = ' + str(
+                avg) + ' +/- ' + str(t_val * (std/math.sqrt(expLength))) + '\n'
+
+        generateLogFile(logText, experimentFileName, verbose)
 
         # save the ending timestamp of experiment
         exp_end = datetime.now()

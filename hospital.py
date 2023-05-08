@@ -49,4 +49,4 @@ def roomEmpty():
 
 
 hospital.runSimulations(5, 80, 1, 1337, 'hr', [(
-    'Waiting room is full', roomFull), ('Waiting room is empty', roomEmpty)])
+    'Waiting room is full', .05, roomFull), ('Waiting room is empty', .05, roomEmpty)])
