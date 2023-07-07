@@ -524,7 +524,7 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
     generateLogFile(eventString, filePath, verbose, True)
 
     # reset timer for timed transition, remove from FEL
-    if (enabledTrans.__class__.__name__ == 'TimedTransition'):
+    if (checkType(enabledTrans) == 'TimedTransition'):
         FEL.remove((enabledTrans, enabledTrans.delay))
         FEL.sort(key=sortDelay)
         enabledTrans.delay = None
