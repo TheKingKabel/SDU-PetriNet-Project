@@ -1,5 +1,6 @@
 import os
 import inspect
+import graphviz
 
 
 def generatePNDescription(PetriNet, fileName: str):
@@ -23,7 +24,6 @@ def generatePNDescription(PetriNet, fileName: str):
 
 
 def generatePNML(petriNet, fileName: str):
-    # pass
 
     # create folder and file for PetriNet (default: root/logs/...)
     os.makedirs(os.path.dirname(fileName), exist_ok=True)
@@ -201,6 +201,38 @@ def generatePNML(petriNet, fileName: str):
 
         # testing
         print(PNDict, file=f)
+
+
+def generatePNGraph(petriNet, fileName: str):
+
+    graph = graphviz.Digraph(
+        format='png', comment=petriNet.name + " Petri Net")
+    graph.attr(rankdir='LR')
+
+    for place in petriNet.placeList:
+        graph.node(place.name, label=place.name, shape='circle',
+                   fontname='times bold')
+
+    for trans in petriNet.timedTransList:
+        graph.node(trans.name, label=trans.name,
+                   fillcolor='white', fontcolor='black', fontname='times bold', shape='rectangle', style='filled')
+
+    for trans in petriNet.immediateTransList:
+        graph.node(trans.name, label=trans.name,
+                   fillcolor='black', fontcolor='white', fontname='times bold', shape='rectangle', style='filled')
+
+    for input in petriNet.inputArcList:
+        graph.edge(input.fromPlace.name,
+                   input.toTrans.name, arrowhead='normal')
+    for output in petriNet.outputArcList:
+        graph.edge(output.fromTrans.name,
+                   output.toPlace.name, arrowhead='normal')
+    for inhib in petriNet.inhibList:
+        graph.edge(inhib.origin.name, inhib.target.name,
+                   arrowhead='odot')
+
+    graph.render(fileName + 'graphviz_output/' + petriNet.name +
+                 '.gv', view=True).replace('\\', '/')
 
 
 def generateLogFile(logText: str, logPath: str, verbose: int, tab: bool = False):

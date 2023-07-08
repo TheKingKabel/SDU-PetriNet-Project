@@ -15,7 +15,7 @@ from components.outputArc import OutputArc
 from components.inhibArc import InhibArc
 from definitions.timeunit_types import TimeUnitType
 from .simulation import simulation
-from .generateLogs import generatePNDescription, generatePNML, generateLogFile
+from .generateLogs import generatePNDescription, generatePNML, generateLogFile, generatePNGraph
 from datetime import datetime
 
 # list of user created Petri Net's (in active module)
@@ -280,11 +280,15 @@ class PetriNet:
                         "The given path: " + logPath + " is invalid, couldn\'t create logs folder.")
 
         # generate .txt description and .pnml file from model
+        # TXT description
         PNDescFileName = logPath + '/' + self.name + '/' + self.name + '_PetriNet.txt'
         generatePNDescription(self, PNDescFileName)
-        # TODO:
+        # PNML file
         pnmlFileName = logPath + '/' + self.name + '/' + self.name + '_PetriNet.pnml'
         generatePNML(self, pnmlFileName)
+        # PN graph
+        PNGraphFile = logPath + '/' + self.name + '/'
+        generatePNGraph(self, PNGraphFile)
 
         # save the starting timestamp of experiment
         exp_start = datetime.now()
