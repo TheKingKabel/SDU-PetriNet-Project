@@ -166,7 +166,12 @@ def generatePNML(petriNet, fileName: str):
             print("\t\t\t<arc id=\"" + AId + "\" source=\"" +
                   str(sourceId) + "\" target=\"" + str(targetId) + "\">", file=f)
             print("\t\t\t\t<inscription>", file=f)
-            print("\t\t\t\t\t<text>" + str(input.multiplicity) + "</text>", file=f)
+            if (input.multiplicity.__class__.__name__ == 'int'):
+                print("\t\t\t\t\t<text>" +
+                      str(input.multiplicity) + "</text>", file=f)
+            elif (input.multiplicity.__class__.__name__ == 'function'):
+                print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
+                    input.multiplicity).split())) + "</text>", file=f)
             print("\t\t\t\t</text>", file=f)
             print("\t\t\t</arc>", file=f)
         # OUTPUT ARCS
@@ -179,7 +184,12 @@ def generatePNML(petriNet, fileName: str):
             print("\t\t\t<arc id=\"" + AId + "\" source=\"" +
                   str(sourceId) + "\" target=\"" + str(targetId) + "\">", file=f)
             print("\t\t\t\t<inscription>", file=f)
-            print("\t\t\t\t\t<text>" + str(output.multiplicity) + "</text>", file=f)
+            if (output.multiplicity.__class__.__name__ == 'int'):
+                print("\t\t\t\t\t<text>" +
+                      str(output.multiplicity) + "</text>", file=f)
+            elif (output.multiplicity.__class__.__name__ == 'function'):
+                print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
+                    output.multiplicity).split())) + "</text>", file=f)
             print("\t\t\t\t</text>", file=f)
             print("\t\t\t</arc>", file=f)
         # INHIBITOR ARCS
@@ -192,14 +202,19 @@ def generatePNML(petriNet, fileName: str):
             print("\t\t\t<arc id=\"" + AId + "\" source=\"" +
                   str(sourceId) + "\" target=\"" + str(targetId) + "\">", file=f)
             print("\t\t\t\t<inscription>", file=f)
-            print("\t\t\t\t\t<text>" + str(inhib.multiplicity) + "</text>", file=f)
+            if (inhib.multiplicity.__class__.__name__ == 'int'):
+                print("\t\t\t\t\t<text>" +
+                      str(inhib.multiplicity) + "</text>", file=f)
+            elif (inhib.multiplicity.__class__.__name__ == 'function'):
+                print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
+                    inhib.multiplicity).split())) + "</text>", file=f)
             print("\t\t\t\t</text>", file=f)
             print("\t\t\t</arc>", file=f)
         print("\t\t</page>", file=f)
         print("\t</net>", file=f)
         print("</pnml>", file=f)
 
-        # testing
+        # testing TODO: remove
         print(PNDict, file=f)
 
 
