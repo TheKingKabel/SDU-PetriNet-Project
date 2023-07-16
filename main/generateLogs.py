@@ -31,12 +31,21 @@ def generatePNML(petriNet, fileName: str):
 
     with open(fileName, 'w') as f:
         print("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", file=f)
-        print("<pnml xmlns=\"https://www.pnml.org/version-2009/version-2009.php\">", file=f)
-        print("\t<net id=\"net1\" type=\"https://www.pnml.org/version-2009/version-2009.php\">", file=f)
+        # <pnml>
+        print("<pnml xmlns=\"http://www.pnml.org/version-2009/grammar/pnml\">", file=f)
+        # <net>
+        print("\t<net id=\"net1\" type=\"https://gitlab.sdu.dk/petri-net-python-library/petri-net-python-library\">", file=f)
+        # <page>
         print("\t\t<page id=\"page1\">", file=f)
+        # <name>
         print("\t\t\t<name>", file=f)
+        # <text></text>
         print("\t\t\t\t<text>" + str(petriNet.name) + "</text>", file=f)
+        # </name>
         print("\t\t\t</name>", file=f)
+        # <toolspecific>
+        print("\t\t\t<toolspecific tool=\"https://gitlab.sdu.dk/petri-net-python-library/petri-net-python-library\" version=\"1.0\" />", file=f)
+
         # PLACES
         itemCounter = 1
         PNDict.update({"places": {}})
@@ -45,58 +54,102 @@ def generatePNML(petriNet, fileName: str):
             PId = "p" + str(itemCounter)
             itemCounter += 1
             PNDict["places"].update({str(place.name): PId})
+            # <place>
             print("\t\t\t<place id=\"" + PId + "\">", file=f)
-            # NAME
+            # <name>
             print("\t\t\t\t<name>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(place.name) + "</text>", file=f)
+            # </name>
             print("\t\t\t\t</name>", file=f)
+
             # INITIAL MARKING
-            # TOKENS
+            # <initialMarking> (tokens)
             print("\t\t\t\t<initialMarking>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(place.tokens) + "</text>", file=f)
+            # </initialMarking> (tokens)
             print("\t\t\t\t</initialMarking>", file=f)
-            # TOTAL TOKENS
+
+            # <initialTotalTokens> (totalTokens)
             print("\t\t\t\t<initialTotalTokens>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(place.totalTokens) + "</text>", file=f)
+            # </initialTotalTokens> (totalTokens)
             print("\t\t\t\t</initialTotalTokens>", file=f)
-            # MAX TOKENS
+
+            # <initialMaxTokens> (maxTokens)
             print("\t\t\t\t<initialMaxTokens>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(place.maxTokens) + "</text>", file=f)
+            # </nitialMaxTokens> (maxTokens)
             print("\t\t\t\t</initialMaxTokens>", file=f)
+            # </place>
             print("\t\t\t</place>", file=f)
 
         # TRANSITIONS
         itemCounter = 1
         PNDict.update({"transitions": {}})
         print("\t\t\t<!-- Transitions -->", file=f)
+
         # IMMEDIATE TRANSITIONS
         for trans in petriNet.immediateTransList:
             TId = "t" + str(itemCounter)
             itemCounter += 1
             PNDict["transitions"].update({str(trans.name): TId})
-            print("\t\t\t<transition id=\"" + TId + "\">", file=f)
-            # NAME
+            # <transition>
+            print("\t\t\t<transition id=\"" + TId +
+                  "\" type=\"immediate\">", file=f)
+
+            # <name>
             print("\t\t\t\t<name>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.name) + "</text>", file=f)
+            # </name>
             print("\t\t\t\t</name>", file=f)
-            # TODO: GUARDS
+
+            # <guard> TODO:
             print("\t\t\t\t<guard>", file=f)
             if (trans.guard is not None):
-                guardText = ' '.join(
-                    inspect.getsource(trans.guard).split())
+
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
+                # <text></text>
+                print("\t\t\t\t\t\t<text>" +
+                      str(trans.guard.__name__) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
+
+                # <code>
+                print("\t\t\t\t\t<code>", file=f)
+                # <text></text>
+                print("\t\t\t\t\t\t<text>" +
+                      str(' '.join(inspect.getsource(trans.guard).split())) + "</text>", file=f)
+                # </code>
+                print("\t\t\t\t\t</code>", file=f)
+
             else:
-                guardText = "None"
-            print("\t\t\t\t\t<text>" + str(guardText) + "</text>", file=f)
+                # <text></text>
+                print("\t\t\t\t\t<text>" + str(None) + "</text>", file=f)
+
+            # </guard>
             print("\t\t\t\t</guard>", file=f)
-            # FIRING PROBABILITY
+
+            # <fireProbability>
             print("\t\t\t\t<fireProbability>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" +
                   str(trans.fireProbability) + "</text>", file=f)
+            # </fireProbability>
             print("\t\t\t\t</fireProbability>", file=f)
-            # FIRING COUNT (INITIAL)
+
+            # <fireCount> (initialFireCount)
             print("\t\t\t\t<fireCount>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.fireCount) + "</text>", file=f)
+            # </fireCount> (initialFireCount)
             print("\t\t\t\t</fireCount>", file=f)
+            # </transition>
             print("\t\t\t</transition>", file=f)
 
         # TIMED TRANSITIONS
@@ -104,58 +157,107 @@ def generatePNML(petriNet, fileName: str):
             TId = "t" + str(itemCounter)
             itemCounter += 1
             PNDict["transitions"].update({str(trans.name): TId})
-            print("\t\t\t<transition id=\"" + TId + "\">", file=f)
-            # NAME
+            # <transition>
+            print("\t\t\t<transition id=\"" + TId +
+                  "\" type=\"timed\">", file=f)
+            # <name>
             print("\t\t\t\t<name>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.name) + "</text>", file=f)
+            # </name>
             print("\t\t\t\t</name>", file=f)
-            # DISTRIBUTION TYPE
+
+            # <distributionType>
             print("\t\t\t\t<distributionType>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.distType) + "</text>", file=f)
+            # </distributionType>
             print("\t\t\t\t</distributionType>", file=f)
+
             # DISTRIBUTION ARGUMENTS
-            # A
+            # <distributionArg1> (distArgA)
             print("\t\t\t\t<distributionArg1>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.a) + "</text>", file=f)
+            # </distributionArg1> (distArgA)
             print("\t\t\t\t</distributionArg1>", file=f)
-            # B
+
+            # <distributionArg2> (distArgB)
             print("\t\t\t\t<distributionArg2>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.b) + "</text>", file=f)
+            # <distributionArg2> (distArgB)
             print("\t\t\t\t</distributionArg2>", file=f)
-            # C
+
+            # <distributionArg3> (distArgC)
             print("\t\t\t\t<distributionArg3>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.c) + "</text>", file=f)
+            # <distributionArg3> (distArgC)
             print("\t\t\t\t</distributionArg3>", file=f)
-            # D
+
+            # <distributionArg4> (distArgD)
             print("\t\t\t\t<distributionArg4>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.d) + "</text>", file=f)
+            # <distributionArg4> (distArgD)
             print("\t\t\t\t</distributionArg4>", file=f)
-            # TIME UNIT
+
+            # <timeUnit>
             print("\t\t\t\t<timeUnit>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.timeUnitType) + "</text>", file=f)
+            # </timeUnit>
             print("\t\t\t\t</timeUnit>", file=f)
-            # AGE POLICY
+
+            # <agePolicy>
             print("\t\t\t\t<agePolicy>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.agePolicy) + "</text>", file=f)
+            # </agePolicy>
             print("\t\t\t\t</agePolicy>", file=f)
-            # TODO: GUARD
+
+            # <guard> TODO:
             print("\t\t\t\t<guard>", file=f)
             if (trans.guard is not None):
-                guardText = ' '.join(
-                    inspect.getsource(trans.guard).split())
+
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
+                # <text></text>
+                print("\t\t\t\t\t\t<text>" +
+                      str(trans.guard.__name__) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
+
+                # <code>
+                print("\t\t\t\t\t<code>", file=f)
+                # <text></text>
+                print("\t\t\t\t\t\t<text>" +
+                      str(' '.join(inspect.getsource(trans.guard).split())) + "</text>", file=f)
+                # </code>
+                print("\t\t\t\t\t</code>", file=f)
+
             else:
-                guardText = "None"
-            print("\t\t\t\t\t<text>" + str(guardText) + "</text>", file=f)
+                # <text></text>
+                print("\t\t\t\t\t<text>" + str(None) + "</text>", file=f)
+
+            # </guard>
             print("\t\t\t\t</guard>", file=f)
-            # FIRING COUNT (INITIAL)
+
+            # <fireCount> (initialFireCount)
             print("\t\t\t\t<fireCount>", file=f)
+            # <text></text>
             print("\t\t\t\t\t<text>" + str(trans.fireCount) + "</text>", file=f)
+            # </fireCount> (initialFireCount)
             print("\t\t\t\t</fireCount>", file=f)
+            # </transition>
             print("\t\t\t</transition>", file=f)
+
         # ARCS
         itemCounter = 1
         PNDict.update({"arcs": {}})
         print("\t\t\t<!-- Arcs -->", file=f)
+
         # INPUT ARCS
         for input in petriNet.inputArcList:
             AId = "arc" + str(itemCounter)
@@ -163,17 +265,30 @@ def generatePNML(petriNet, fileName: str):
             PNDict["arcs"].update({str(input.name): AId})
             sourceId = PNDict['places'][input.fromPlace.name]
             targetId = PNDict['transitions'][input.toTrans.name]
+            # <arc>
             print("\t\t\t<arc id=\"" + AId + "\" source=\"" +
-                  str(sourceId) + "\" target=\"" + str(targetId) + "\">", file=f)
+                  str(sourceId) + "\" target=\"" + str(targetId) + "\" type=\"input\">", file=f)
+            # <name>
+            print("\t\t\t\t<name>", file=f)
+            # <text></text>
+            print("\t\t\t\t\t<text>" + str(input.name) + "</text>", file=f)
+            # </name>
+            print("\t\t\t\t</name>", file=f)
+            # <inscription>
             print("\t\t\t\t<inscription>", file=f)
             if (input.multiplicity.__class__.__name__ == 'int'):
+                # <text></text>
                 print("\t\t\t\t\t<text>" +
                       str(input.multiplicity) + "</text>", file=f)
             elif (input.multiplicity.__class__.__name__ == 'function'):
+                # <text></text>
                 print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
                     input.multiplicity).split())) + "</text>", file=f)
-            print("\t\t\t\t</text>", file=f)
+            # </inscription>
+            print("\t\t\t\t</inscription>", file=f)
+            # </arc>
             print("\t\t\t</arc>", file=f)
+
         # OUTPUT ARCS
         for output in petriNet.outputArcList:
             AId = "arc" + str(itemCounter)
@@ -181,17 +296,30 @@ def generatePNML(petriNet, fileName: str):
             PNDict["arcs"].update({str(output.name): AId})
             sourceId = PNDict['transitions'][output.fromTrans.name]
             targetId = PNDict['places'][output.toPlace.name]
+            # <arc>
             print("\t\t\t<arc id=\"" + AId + "\" source=\"" +
-                  str(sourceId) + "\" target=\"" + str(targetId) + "\">", file=f)
+                  str(sourceId) + "\" target=\"" + str(targetId) + "\" type=\"output\">", file=f)
+            # <name>
+            print("\t\t\t\t<name>", file=f)
+            # <text></text>
+            print("\t\t\t\t\t<text>" + str(output.name) + "</text>", file=f)
+            # </name>
+            print("\t\t\t\t</name>", file=f)
+            # <inscription>
             print("\t\t\t\t<inscription>", file=f)
             if (output.multiplicity.__class__.__name__ == 'int'):
+                # <text></text>
                 print("\t\t\t\t\t<text>" +
                       str(output.multiplicity) + "</text>", file=f)
             elif (output.multiplicity.__class__.__name__ == 'function'):
+                # <text></text>
                 print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
                     output.multiplicity).split())) + "</text>", file=f)
-            print("\t\t\t\t</text>", file=f)
+            # </inscription>
+            print("\t\t\t\t</inscription>", file=f)
+            # </arc>
             print("\t\t\t</arc>", file=f)
+
         # INHIBITOR ARCS
         for inhib in petriNet.inhibList:
             AId = "arc" + str(itemCounter)
@@ -199,23 +327,36 @@ def generatePNML(petriNet, fileName: str):
             PNDict["arcs"].update({str(inhib.name): AId})
             sourceId = PNDict['places'][inhib.origin.name]
             targetId = PNDict['transitions'][inhib.target.name]
+            # <arc>
             print("\t\t\t<arc id=\"" + AId + "\" source=\"" +
-                  str(sourceId) + "\" target=\"" + str(targetId) + "\">", file=f)
+                  str(sourceId) + "\" target=\"" + str(targetId) + "\" type=\"inhibitor\">", file=f)
+            # <name>
+            print("\t\t\t\t<name>", file=f)
+            # <text></text>
+            print("\t\t\t\t\t<text>" + str(inhib.name) + "</text>", file=f)
+            # </name>
+            print("\t\t\t\t</name>", file=f)
+            # <inscription>
             print("\t\t\t\t<inscription>", file=f)
             if (inhib.multiplicity.__class__.__name__ == 'int'):
+                # <text></text>
                 print("\t\t\t\t\t<text>" +
                       str(inhib.multiplicity) + "</text>", file=f)
             elif (inhib.multiplicity.__class__.__name__ == 'function'):
+                # <text></text>
                 print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
                     inhib.multiplicity).split())) + "</text>", file=f)
-            print("\t\t\t\t</text>", file=f)
+            # </inscription>
+            print("\t\t\t\t</inscription>", file=f)
+            # </arc>
             print("\t\t\t</arc>", file=f)
-        print("\t\t</page>", file=f)
-        print("\t</net>", file=f)
-        print("</pnml>", file=f)
 
-        # testing TODO: remove
-        print(PNDict, file=f)
+        # </page>
+        print("\t\t</page>", file=f)
+        # </net>
+        print("\t</net>", file=f)
+        # </pnml>
+        print("</pnml>", file=f)
 
 
 def generatePNGraph(petriNet, fileName: str):

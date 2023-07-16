@@ -5,7 +5,9 @@ from main.PetriNet import *
 # one bank clerk is servicing them which takes a random amount of time for him too
 # change the parameters (including the set seed!) and see how the results change
 
-bank = PetriNet("SimpleBank")
+# bank = PetriNet("SimpleBank")
+
+bank = createNewPN("SimpleBank")
 
 TEnter = TimedTransition("TEnter", bank, "NORM", 5.0, 25.0, timeUnitType='min')
 TWait = ImmediateTransition("TWait", bank)

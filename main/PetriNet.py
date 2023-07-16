@@ -7,6 +7,7 @@ import statistics
 import math
 import os
 import scipy
+import xml.etree.ElementTree as ET
 from components.immediateTransition import ImmediateTransition
 from components.timedTransition import TimedTransition
 from components.place import Place
@@ -22,6 +23,206 @@ from datetime import datetime
 petriNetList = []
 
 
+def createNewPN(name: str):
+    '''
+    Method used to create (define) new instance of Petri Net class.
+    Calls the dedault constructor method (init) with same parameters.
+    Arguments:
+        @param name: Name of the Petri Net, must be string, must be unique amongst Petri Net names created by user in the same module.
+    '''
+    return PetriNet(name)
+
+
+def loadExistingPN(filePath: str, newName: str = None):
+    '''
+    Method used to load pre-defined Petri Net from the given (generated) .pnml file.
+    Arguments:
+        @param filePath: Path of the generated .pnml file to generate Petri Net object from.
+        @param newName (optional): New name for the reconstructed Petri Net (will not overwrite already existing Petri Net files with old name).
+    '''
+    # pass TODO: remove
+
+    # check if file exists at path
+    if (not os.path.isfile(filePath)):
+        raise Exception("The file in: " + str(filePath) + " does not exist.")
+
+    # check if file extension is .pnml
+    if (not filePath.endswith('.pnml')):
+        raise Exception("The file in: " + str(filePath) +
+                        " is not a .pnml file.")
+
+    # using XML parser to read .pnml file
+    namespace = {'pnml': 'http://www.pnml.org/version-2009/grammar/pnml'}
+    tree = ET.parse(filePath)
+    root = tree.getroot()
+
+    # create Petri Net dictionary to identify and store references to nodes by id
+    PNDict = {}
+
+    # create Petri Net object
+    if (newName is None):
+        PN_name = root.find('.//pnml:page/pnml:name/pnml:text', namespace).text
+    else:
+        PN_name = str(newName)
+    petriNet = PetriNet(PN_name)
+
+    # PLACES
+    PNDict.update({"places": {}})
+    for element in root.findall('.//pnml:place', namespace):
+
+        place_name = element.find('pnml:name/pnml:text', namespace).text
+        place_initT = element.find(
+            'pnml:initialMarking/pnml:text', namespace).text
+        place_initTT = element.find(
+            'pnml:initialTotalTokens/pnml:text', namespace).text
+        place_initMT = element.find(
+            'pnml:initialMaxTokens/pnml:text', namespace).text
+
+        # create Place object
+        place = Place(str(place_name), petriNet, int(place_initT),
+                      int(place_initTT), int(place_initMT))
+
+        # store place reference in dictionary
+        PNDict["places"].update({element.get('id'): place})
+
+        print(str(place_name) + ', init: ' + str(place_initT) +
+              ', tt: ' + str(place_initTT) + ', mt: ' + str(place_initMT))
+
+    # TRANSITIONS
+    PNDict.update({"transitions": {}})
+
+    # TIMED TRANSITIONS
+    for element in root.findall('.//pnml:transition[@type="timed"]', namespace):
+
+        transition_name = element.find('pnml:name/pnml:text', namespace).text
+        transition_distType = element.find(
+            'pnml:distributionType/pnml:text', namespace).text
+        transition_distArg1 = element.find(
+            'pnml:distributionArg1/pnml:text', namespace).text
+        transition_distArg2 = element.find(
+            'pnml:distributionArg2/pnml:text', namespace).text
+        transition_distArg3 = element.find(
+            'pnml:distributionArg3/pnml:text', namespace).text
+        transition_distArg4 = element.find(
+            'pnml:distributionArg4/pnml:text', namespace).text
+        transition_timeUnit = element.find(
+            'pnml:timeUnit/pnml:text', namespace).text
+        transition_agePolicy = element.find(
+            'pnml:agePolicy/pnml:text', namespace).text
+
+        # create guard function dynamically TODO:
+        if (element.find('pnml:guard/pnml:text', namespace).text == 'None'):
+            transition_guard = None
+        else:
+            exec(element.find('pnml:guard/pnml:code/pnml:text', namespace).text)
+            transition_guard = globals()[element.find(
+                'pnml:guard/pnml:name/pnml:text', namespace).text]
+
+        transition_fireCount = element.find(
+            'pnml:fireCount/pnml:text', namespace).text
+
+        # create Timed Transition object
+        timedTransition = TimedTransition(str(transition_name), petriNet, transition_distType, float(transition_distArg1), float(transition_distArg2),
+                                          float(transition_distArg3), float(
+                                              transition_distArg4), transition_timeUnit, transition_agePolicy,
+                                          transition_guard, int(transition_fireCount))
+
+        # store transition reference in dictionary
+        PNDict["transitions"].update({element.get('id'): timedTransition})
+
+        print(str(transition_name) + ', ' + str(transition_distType) +
+              ', ' + str(transition_distArg1) + ', ' + str(transition_distArg2) +
+              ', ' + str(transition_distArg3) + ', ' + str(transition_distArg4) +
+              ', ' + str(transition_timeUnit) + ', ' + str(transition_agePolicy) +
+              ', ' + str(transition_guard) + ', ' + str(transition_fireCount))
+
+    # IMMEDIATE TRANSITIONS
+    for element in root.findall('.//pnml:transition[@type="immediate"]', namespace):
+
+        transition_name = element.find('pnml:name/pnml:text', namespace).text
+
+        # create guard function dynamically TODO:
+        if (element.find('pnml:guard/pnml:text', namespace).text == 'None'):
+            transition_guard = None
+        else:
+            exec(element.find('pnml:guard/pnml:code/pnml:text', namespace).text)
+            transition_guard = globals()[element.find(
+                'pnml:guard/pnml:name/pnml:text', namespace).text]
+
+        transition_fireProbability = element.find(
+            'pnml:fireProbability/pnml:text', namespace).text
+        transition_fireCount = element.find(
+            'pnml:fireCount/pnml:text', namespace).text
+
+        # create Immediate Transition object
+        immediateTransition = ImmediateTransition(
+            str(transition_name), petriNet, transition_guard, float(transition_fireProbability), int(transition_fireCount))
+
+        # store transition reference in dictionary
+        PNDict["transitions"].update({element.get('id'): immediateTransition})
+
+        print(str(transition_name) + ', ' + str(transition_guard) +
+              ', ' + str(transition_fireProbability) + ', ' + str(transition_fireCount))
+
+    # ARCS
+
+    # INPUT ARCS
+    for element in root.findall('.//pnml:arc[@type="input"]', namespace):
+
+        arc_name = element.find('pnml:name/pnml:text', namespace).text
+        arc_inscription = element.find(
+            'pnml:inscription/pnml:text', namespace).text
+
+        # get place/transition id to find reference from PN dictionary
+        arc_source = element.get('source')
+        arc_target = element.get('target')
+
+        # create Input Arc object
+        inputArc = InputArc(str(
+            arc_name), petriNet, PNDict['places'][arc_source], PNDict['transitions'][arc_target], int(arc_inscription))
+
+        print("input " + str(arc_name) + ', ' +
+              str(arc_inscription) + ', ' + str(arc_source) + ', ' + str(arc_target))
+
+    # OUTPUT ARCS
+    for element in root.findall('.//pnml:arc[@type="output"]', namespace):
+
+        arc_name = element.find('pnml:name/pnml:text', namespace).text
+        arc_inscription = element.find(
+            'pnml:inscription/pnml:text', namespace).text
+
+        # get place/transition id to find reference from PN dictionary
+        arc_source = element.get('source')
+        arc_target = element.get('target')
+
+        # create Output Arc object
+        outputArc = OutputArc(str(
+            arc_name), petriNet, PNDict['transitions'][arc_source], PNDict['places'][arc_target], int(arc_inscription))
+
+        print("output " + str(arc_name) + ', ' +
+              str(arc_inscription) + ', ' + str(arc_source) + ', ' + str(arc_target))
+
+    # INHIBITOR ARCS
+    for element in root.findall('.//pnml:arc[@type="inhibitor"]', namespace):
+
+        arc_name = element.find('pnml:name/pnml:text', namespace).text
+        arc_inscription = element.find(
+            'pnml:inscription/pnml:text', namespace).text
+
+        # get place/transition id to find reference from PN dictionary
+        arc_source = element.get('source')
+        arc_target = element.get('target')
+
+        # create Inhibitor Arc object
+        inhibitorArc = InhibArc(str(arc_name), petriNet,
+                                PNDict['places'][arc_source], PNDict['transitions'][arc_target], int(arc_inscription))
+
+        print("inhib " + str(arc_name) + ', ' +
+              str(arc_inscription) + ', ' + str(arc_source) + ', ' + str(arc_target))
+
+    return petriNet
+
+
 class PetriNet:
     '''
     Class that represents a Petri Net object.
@@ -29,13 +230,18 @@ class PetriNet:
 
     def __init__(self, name: str):
         '''
-        Constructor method of the Petri Net class.
+        (Default) Constructor method of the Petri Net class.
         Arguments:
             @param name: Name of the Petri Net, must be string, must be unique amongst Petri Net names created by user in the same module.
         '''
 
-        # set name of the Petri Net
-        self.name = str(name)
+        if (_checkName(name)):
+            # set name of the Petri Net
+            self.name = str(name)
+        else:
+            del self
+            raise Exception("A Petri Net named: " +
+                            str(name) + " already exists")
 
         # create lists to store different objects assigned to current Petri Net
         # list of Place assigned to current Petri Net
@@ -87,6 +293,12 @@ class PetriNet:
             returnString += '\n' + str(place)
         return returnString
 
+    def findPlaceByName(self, placeName):
+        for place in self.placeList:
+            if (place.name == placeName):
+                return place
+        raise Exception('Place does not exists with name: ' + name)
+
     def getTimedTransitions(self):
         '''
         Returns user-friendly string representation (description) of the Timed Transitions assigned to the Petri Net object.
@@ -97,6 +309,12 @@ class PetriNet:
         for timedTrans in self.timedTransList:
             returnString += '\n' + str(timedTrans)
         return returnString
+
+    def findTimedTransitionByName(self, transName):
+        for trans in self.timedTransList:
+            if (trans.name == transName):
+                return trans
+        raise Exception('Timed Transition does not exists with name: ' + name)
 
     def getImmediateTransitions(self):
         '''
@@ -109,6 +327,13 @@ class PetriNet:
             returnString += '\n' + str(immediateTrans)
         return returnString
 
+    def findImmediateTransitionByName(self, transName):
+        for trans in self.immediateTransList:
+            if (trans.name == transName):
+                return trans
+        raise Exception(
+            'Immediate Transition does not exists with name: ' + name)
+
     def getInputArcs(self):
         '''
         Returns user-friendly string representation (description) of the Input Arcs assigned to the Petri Net object.
@@ -119,6 +344,12 @@ class PetriNet:
         for inputArc in self.inputArcList:
             returnString += '\n' + str(inputArc)
         return returnString
+
+    def findInputArcByName(self, inputName):
+        for inputArc in self.inputArcList:
+            if (inputArc.name == name):
+                return inputArc
+        raise Exception('Input Arc does not exists with name: ' + name)
 
     def getOutputArcs(self):
         '''
@@ -131,6 +362,12 @@ class PetriNet:
             returnString += '\n' + str(outputArc)
         return returnString
 
+    def findOutputArcByName(self, outputName):
+        for outputArc in self.outputArcList:
+            if (outputArc.name == name):
+                return outputArc
+        raise Exception('Output Arc does not exists with name: ' + name)
+
     def getInhibArcs(self):
         '''
         Returns user-friendly string representation (description) of the Inhibitor Arcs assigned to the Petri Net object.
@@ -141,6 +378,12 @@ class PetriNet:
         for inhibArc in self.inhibList:
             returnString += '\n' + str(inhibArc)
         return returnString
+
+    def findInhibArcByName(self, inhibName):
+        for inhibArc in self.inhibList:
+            if (inhibArc.name == inhibName):
+                return inhibArc
+        raise Exception('Inhibitor Arc does not exists with name: ' + name)
 
     def runSimulations(self, expLength: int, simLength: float, verbose: int = 2, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
         # TODO: verbose ?
@@ -438,3 +681,10 @@ class PetriNet:
 
         generateLogFile("Experiment ended at: " + str(exp_end) + "\nElapsed time: " +
                         str(exp_end-exp_start) + "\n", experimentFileName, file_verbose)
+
+
+def _checkName(name: str):
+    for petriNet in petriNetList:
+        if (petriNet.name == name):
+            return False
+    return True

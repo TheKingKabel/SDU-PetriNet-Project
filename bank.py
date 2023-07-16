@@ -51,7 +51,7 @@ def exactQueue():
 # ...which is in this case not the default 'sec' (seconds), but rather 'hr' hours
 # we're passing the conditionals following this struct structure: list[tuple1('conditional description', alpha value, function reference), tuple2(...),...]
 # type checks are implemented thoroughly, invalid input will not execute but return Exception
-bank.runSimulations(10, 8, 1, defTimeUnit='hr', conditionals=[
+bank.runSimulations(10, 8, 1, 1337, defTimeUnit='hr', conditionals=[
                    ('Busy bank teller', .05, serverBusy), ('Lot of customers', .10, bigQueue), ('Queue of customers is exactly 2', .15, exactQueue)])
 
 # calling it dumps the same human-readable PN description that can be found in <setPath>/logs/<PetriNet name>/<PetriNet name>_PetriNet.txt

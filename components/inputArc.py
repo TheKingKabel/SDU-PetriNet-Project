@@ -18,7 +18,7 @@ class InputArc:
         '''
 
         # Type checks
-        if(_checkType(petriNet) == "PetriNet"):
+        if (_checkType(petriNet) == "PetriNet"):
             # set reference of Petri Net to assign current Input Arc to
             self.petriNet = petriNet
 
@@ -27,8 +27,8 @@ class InputArc:
                 self.name = str(name)
 
                 # add reference of Input Arc to origin Place's Input Arc list
-                if(_checkType(fromPlace) == "Place"):
-                    if(fromPlace.petriNet != petriNet):
+                if (_checkType(fromPlace) == "Place"):
+                    if (fromPlace.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Input Arc's fromPlace parameter must be instance of class Place from the same assigned Petri Net")
@@ -41,16 +41,16 @@ class InputArc:
                         "Input Arc's fromPlace parameter must be instance of class Place")
 
                 # add reference of Input Arc to target Transition's Input Arc list
-                if(_checkType(toTrans) == "TimedTransition"):
-                    if(toTrans.petriNet != petriNet):
+                if (_checkType(toTrans) == "TimedTransition"):
+                    if (toTrans.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Input Arc's toTrans parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
                     # set reference of target (Timed) Transition
                     self.toTrans = toTrans
                     toTrans.inputArcs.append(self)
-                elif(_checkType(toTrans) == "ImmediateTransition"):
-                    if(toTrans.petriNet != petriNet):
+                elif (_checkType(toTrans) == "ImmediateTransition"):
+                    if (toTrans.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Input Arc's toTrans parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
@@ -63,9 +63,9 @@ class InputArc:
                         "Input Arc's toTrans parameter must be instance of class Timed Transition or Immediate Transition")
 
                 # set multiplicity of Input Arc
-                if(_checkType(multiplicity) == 'int'):
+                if (_checkType(multiplicity) == 'int'):
                     # if multiplicity is a set integer, check if it's greater than 0
-                    if(multiplicity <= 0):
+                    if (multiplicity <= 0):
                         del self
                         raise Exception(
                             "The multiplicity of Input Arc named: " + name + " must be greater than 0!"
@@ -73,7 +73,7 @@ class InputArc:
                     else:
                         self.multiplicity = multiplicity
                 # if multiplicity is set dynamically via function, check if it's returning integer value
-                elif(_checkType(multiplicity()) == 'int'):
+                elif (_checkType(multiplicity()) == 'int'):
                     self.multiplicity = multiplicity
                 else:
                     del self
@@ -102,14 +102,14 @@ class InputArc:
             f"\tname: {self.name},\n"
             f"\tin Petri Net named: {self.petriNet.name},\n"
         )
-        if(self.fromPlace is not None):
+        if (self.fromPlace is not None):
             returnString += f"\tfrom Place: {self.fromPlace.name},\n"
         else:
             returnString += f"\tfrom Place: {None},\n"
-        if(self.toTrans is not None):
-            if(_checkType(self.toTrans) == "TimedTransition"):
+        if (self.toTrans is not None):
+            if (_checkType(self.toTrans) == "TimedTransition"):
                 returnString += f"\tto Timed Transition: {self.toTrans.name},\n"
-            elif(_checkType(self.toTrans) == "ImmediateTransition"):
+            elif (_checkType(self.toTrans) == "ImmediateTransition"):
                 returnString += f"\tto Immediate Transition: {self.toTrans.name},\n"
         else:
             returnString += f"\tto Transition: {None},\n"
@@ -147,8 +147,8 @@ class InputArc:
         Setter function for origin place of Input Arc.
         @param fromPlace: New origin place for Input Arc, must be instance of class Place, must be assigned to same Petri Net instance
         '''
-        if(_checkType(fromPlace) == "Place"):
-            if(fromPlace.petriNet != self.petriNet):
+        if (_checkType(fromPlace) == "Place"):
+            if (fromPlace.petriNet != self.petriNet):
                 raise Exception(
                     "Input Arc's new origin place parameter must be instance of class Place from the same assigned Petri Net")
             if (self.fromPlace is not None):
@@ -175,8 +175,8 @@ class InputArc:
         Setter function for target transition of Input Arc.
         @param toTrans: New target transition for Input Arc, must be instance of class Timed Transition of Immediate Transition, must be assigned to same Petri Net instance
         '''
-        if(_checkType(toTrans) == "TimedTransition"):
-            if(toTrans.petriNet != self.petriNet):
+        if (_checkType(toTrans) == "TimedTransition"):
+            if (toTrans.petriNet != self.petriNet):
                 raise Exception(
                     "Input Arc's new target transition parameter must be instance of class Timed Transition from the same assigned Petri Net")
             if (self.toTrans is not None):
@@ -186,8 +186,8 @@ class InputArc:
             # add reference to input Arc to new target Timed Transition's Input Arc list
             self.toTrans = toTrans
             toTrans.inputArcs.append(self)
-        elif(_checkType(toTrans) == "ImmediateTransition"):
-            if(toTrans.petriNet != self.petriNet):
+        elif (_checkType(toTrans) == "ImmediateTransition"):
+            if (toTrans.petriNet != self.petriNet):
                 raise Exception(
                     "Input Arc's new target transition parameter must be instance of class Immediate Transition from the same assigned Petri Net")
             if (self.toTrans is not None):
@@ -233,10 +233,3 @@ def _checkName(petriNet, name):
 
 def _checkType(object):
     return object.__class__.__name__
-
-
-# def findInputArcByName(name):
-#     for inputArc in inputArcList:
-#         if (inputArc.name == name):
-#             return inputArc
-#     raise Exception('Input Arc does not exists with name: ' + name)

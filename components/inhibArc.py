@@ -18,7 +18,7 @@ class InhibArc:
         '''
 
         # Type checks
-        if(_checkType(petriNet) == "PetriNet"):
+        if (_checkType(petriNet) == "PetriNet"):
             # set reference of Petri Net to assign current Inhibitor Arc to
             self.petriNet = petriNet
 
@@ -27,8 +27,8 @@ class InhibArc:
                 self.name = str(name)
 
                 # add reference of Inhibitor Arc to Origin's Inhibitor Arc list
-                if(_checkType(origin) == "Place"):
-                    if(origin.petriNet != petriNet):
+                if (_checkType(origin) == "Place"):
+                    if (origin.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Inhibitor Arc's origin parameter must be instance of class Place from the same assigned Petri Net")
@@ -41,16 +41,16 @@ class InhibArc:
                         "Inhibitor Arc's origin parameter must be instance of class Place")
 
                 # add reference of Inhibitor Arc to target Transition's Inhibitor Arc list
-                if(_checkType(target) == "TimedTransition"):
-                    if(target.petriNet != petriNet):
+                if (_checkType(target) == "TimedTransition"):
+                    if (target.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Inhibitor Arc's target parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
                     # set reference of target (Timed) Transition
                     self.target = target
                     target.inhibArcs.append(self)
-                elif(_checkType(target) == "ImmediateTransition"):
-                    if(target.petriNet != petriNet):
+                elif (_checkType(target) == "ImmediateTransition"):
+                    if (target.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Inhibitor Arc's target parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
@@ -63,9 +63,9 @@ class InhibArc:
                         "Inhibitor Arc's target parameter must be instance of class Timed Transition or Immediate Transition")
 
                 # set multiplicity of Inhibitor Arc
-                if(_checkType(multiplicity) == 'int'):
+                if (_checkType(multiplicity) == 'int'):
                     # if multiplicity is a set integer, check if it's greater than 0
-                    if(multiplicity <= 0):
+                    if (multiplicity <= 0):
                         del self
                         raise Exception(
                             "The multiplicity of Inhibitor Arc named: " + name + " must be greater than 0!"
@@ -73,7 +73,7 @@ class InhibArc:
                     else:
                         self.multiplicity = multiplicity
                 # if multiplicity is set dynamically via function, check if it's returning integer value
-                elif(_checkType(multiplicity()) == 'int'):
+                elif (_checkType(multiplicity()) == 'int'):
                     self.multiplicity = multiplicity
                 else:
                     del self
@@ -102,14 +102,14 @@ class InhibArc:
             f"\tname: {self.name},\n"
             f"\tin Petri Net named: {self.petriNet.name},\n"
         )
-        if(self.origin is not None):
+        if (self.origin is not None):
             returnString += f"\tfrom Place: {self.origin.name},\n"
         else:
             returnString += f"\tfrom Place: {None},\n"
-        if(self.target is not None):
-            if(_checkType(self.target) == "TimedTransition"):
+        if (self.target is not None):
+            if (_checkType(self.target) == "TimedTransition"):
                 returnString += f"\tto Timed Transition: {self.target.name},\n"
-            elif(_checkType(self.target) == "ImmediateTransition"):
+            elif (_checkType(self.target) == "ImmediateTransition"):
                 returnString += f"\tto Immediate Transition: {self.target.name},\n"
         else:
             returnString += f"\tto Transition: {None},\n"
@@ -162,8 +162,8 @@ class InhibArc:
         Setter function for origin of Inhibitor.
         @param newOrigin: New origin for Inhibitor, must be instance of class Place, must be assigned to same Petri Net instance
         '''
-        if(_checkType(newOrigin) == "Place"):
-            if(newOrigin.petriNet != self.petriNet):
+        if (_checkType(newOrigin) == "Place"):
+            if (newOrigin.petriNet != self.petriNet):
                 raise Exception(
                     "Inhibitor Arc's new origin Place must be assigned to the same Petri Net of Inhibitor Arc!")
             if (self.origin is not None):
@@ -190,8 +190,8 @@ class InhibArc:
         Setter function for target of Inhibitor.
         @param newTarget: New target for Inhibitor, must be instance of class Timed Transition or Immediate Transition, must be assigned to same Petri Net instance
         '''
-        if(_checkType(newTarget) == "TimedTransition"):
-            if(newTarget.petriNet != self.petriNet):
+        if (_checkType(newTarget) == "TimedTransition"):
+            if (newTarget.petriNet != self.petriNet):
                 raise Exception(
                     "Inhibitor Arc's new target Timed Transition must be assigned to the same Petri Net of Inhibitor Arc!")
             if (self.target is not None):
@@ -201,8 +201,8 @@ class InhibArc:
             # add reference to Inhibitor Arc to new target Transition's Inhibitor Arc list
             self.target = newTarget
             newTarget.inhibArcs.append(self)
-        elif(_checkType(newTarget) == "ImmediateTransition"):
-            if(newTarget.petriNet != self.petriNet):
+        elif (_checkType(newTarget) == "ImmediateTransition"):
+            if (newTarget.petriNet != self.petriNet):
                 raise Exception(
                     "Inhibitor Arc's new target Immediate Transition must be assigned to the same Petri Net of Inhibitor Arc!")
             if (self.target is not None):
@@ -228,13 +228,6 @@ def _checkName(petriNet, name):
         if (inhibArc.name == name):
             return False
     return True
-
-
-def findInhibArcByName(name):
-    for inhibArc in inhibList:
-        if (inhibArc.name == name):
-            return inhibArc
-    raise Exception('Inhibitor Arc does not exists with name: ' + name)
 
 
 def _checkType(object):

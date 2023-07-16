@@ -18,7 +18,7 @@ class OutputArc:
         '''
 
         # Type checks
-        if(_checkType(petriNet) == "PetriNet"):
+        if (_checkType(petriNet) == "PetriNet"):
             # set reference of Petri Net to assign current Output Arc to
             self.petriNet = petriNet
 
@@ -27,16 +27,16 @@ class OutputArc:
                 self.name = str(name)
 
                 # add reference of Output Arc to origin Transition's Output Arc list
-                if(_checkType(fromTrans) == "TimedTransition"):
-                    if(fromTrans.petriNet != petriNet):
+                if (_checkType(fromTrans) == "TimedTransition"):
+                    if (fromTrans.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Output Arc's fromTrans parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
                     # set reference of origin (Timed) Transition
                     self.fromTrans = fromTrans
                     fromTrans.outputArcs.append(self)
-                elif(_checkType(fromTrans) == "ImmediateTransition"):
-                    if(fromTrans.petriNet != petriNet):
+                elif (_checkType(fromTrans) == "ImmediateTransition"):
+                    if (fromTrans.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Output Arc's fromTrans parameter must be instance of class Timed Transition or Immediate Transition from the same assigned Petri Net")
@@ -49,8 +49,8 @@ class OutputArc:
                         "Output Arc's fromTrans parameter must be instance of class Timed Transition or Immediate Transition")
 
                 # add reference of Output Arc to target Place's Output Arc list
-                if(_checkType(toPlace) == "Place"):
-                    if(toPlace.petriNet != petriNet):
+                if (_checkType(toPlace) == "Place"):
+                    if (toPlace.petriNet != petriNet):
                         del self
                         raise Exception(
                             "Output Arc's toPlace parameter must be instance of class Place from the same assigned Petri Net")
@@ -63,9 +63,9 @@ class OutputArc:
                         "Output Arc's toPlace parameter must be instance of class Place")
 
                 # set multiplicity of Output Arc
-                if(_checkType(multiplicity) == 'int'):
+                if (_checkType(multiplicity) == 'int'):
                     # if multiplicity is a set integer, check if it's greater than 0
-                    if(multiplicity <= 0):
+                    if (multiplicity <= 0):
                         del self
                         raise Exception(
                             "The multiplicity of Output Arc named: " + name + " must be greater than 0!"
@@ -73,7 +73,7 @@ class OutputArc:
                     else:
                         self.multiplicity = multiplicity
                 # if multiplicity is set dynamically via function, check if it's returning integer value
-                elif(_checkType(multiplicity()) == 'int'):
+                elif (_checkType(multiplicity()) == 'int'):
                     self.multiplicity = multiplicity
                 else:
                     del self
@@ -102,14 +102,14 @@ class OutputArc:
             f"\tname: {self.name},\n"
             f"\tin Petri Net named: {self.petriNet.name},\n"
         )
-        if(self.fromTrans is not None):
-            if(_checkType(self.fromTrans) == "TimedTransition"):
+        if (self.fromTrans is not None):
+            if (_checkType(self.fromTrans) == "TimedTransition"):
                 returnString += f"\tfrom Timed Transition: {self.fromTrans.name},\n"
-            elif(_checkType(self.fromTrans) == "ImmediateTransition"):
+            elif (_checkType(self.fromTrans) == "ImmediateTransition"):
                 returnString += f"\tfrom Immediate Transition: {self.fromTrans.name},\n"
         else:
             returnString += f"\tfrom Transition: {None},\n"
-        if(self.toPlace is not None):
+        if (self.toPlace is not None):
             returnString += f"\tto Place: {self.toPlace.name},\n"
         else:
             returnString += f"\tto Place: {None},\n"
@@ -147,8 +147,8 @@ class OutputArc:
         Setter function for origin transition of Output Arc.
         @param fromTrans: New origin place for Output Arc, must be instance of class Timed Transition or Immediate Transition, must be assigned to same Petri Net instance
         '''
-        if(_checkType(fromTrans) == "TimedTransition"):
-            if(fromTrans.petriNet != self.petriNet):
+        if (_checkType(fromTrans) == "TimedTransition"):
+            if (fromTrans.petriNet != self.petriNet):
                 raise Exception(
                     "Output Arc's new origin transition parameter must be instance of class Timed Transition from the same assigned Petri Net")
             if (self.fromTrans is not None):
@@ -158,8 +158,8 @@ class OutputArc:
             # add reference to output Arc to new origin Timed Transition's Output Arc list
             self.fromTrans = fromTrans
             fromTrans.outputArcs.append(self)
-        elif(_checkType(fromTrans) == "ImmediateTransition"):
-            if(fromTrans.petriNet != self.petriNet):
+        elif (_checkType(fromTrans) == "ImmediateTransition"):
+            if (fromTrans.petriNet != self.petriNet):
                 raise Exception(
                     "Output Arc's new origin transition parameter must be instance of class Immediate Transition from the same assigned Petri Net")
             if (self.fromTrans is not None):
@@ -186,8 +186,8 @@ class OutputArc:
         Setter function for target place of Output Arc.
         @param toPlace: New target place for Output Arc, must be instance of class Place, must be assigned to same Petri Net instance
         '''
-        if(_checkType(toPlace) == "Place"):
-            if(toPlace.petriNet != self.petriNet):
+        if (_checkType(toPlace) == "Place"):
+            if (toPlace.petriNet != self.petriNet):
                 raise Exception(
                     "Output Arc's new target place parameter must be instance of class Place from the same assigned Petri Net")
             if (self.toPlace is not None):
@@ -229,13 +229,6 @@ def _checkName(petriNet, name):
         if (outputArc.name == name):
             return False
     return True
-
-
-def findOutputArcByName(name):
-    for outputArc in outputArcList:
-        if (outputArc.name == name):
-            return outputArc
-    raise Exception('Output Arc does not exists with name: ' + name)
 
 
 def _checkType(object):
