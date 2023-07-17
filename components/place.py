@@ -12,11 +12,13 @@ class Place:
         Arguments:
             @param name: Name of the Place, must be string, must be unique amongst Place names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Place to be assigned to, must be instance of class PetriNet.
-            @param tokens (optional): Parameter used to overwrite initial number of tokens held by Place, must be integer, must not be smaller than 0. Default value: 0.
-            @param totalTokens (optional): Parameter used to overwrite initial total number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.
-            @param maxTokens (optional): Parameter used to overwrite initial maximum number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.        TODO: remove from constructor, it's updated automatically
+            @param tokens (optional): Parameter used to define initial number of tokens held by Place, must be integer, must not be smaller than 0. Default value: 0.
+            @param totalTokens (optional): Parameter used to define initial total number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.
+            @param maxTokens (optional): Parameter used to define initial maximum number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.
         '''
-        if(_checkType(petriNet) == "PetriNet"):
+
+        # Type checks
+        if (_checkType(petriNet) == "PetriNet"):
             # set reference of Petri Net to assign current Place to
             self.petriNet = petriNet
 
@@ -25,8 +27,8 @@ class Place:
                 self.name = str(name)
 
                 # set number of initial tokens, default 0
-                if(_checkType(tokens) == 'int'):
-                    if(tokens < 0):
+                if (_checkType(tokens) == 'int'):
+                    if (tokens < 0):
                         del self
                         raise Exception(
                             "The initial number of tokens set for Place named: " + name + " must not be smaller than 0!")
@@ -42,17 +44,17 @@ class Place:
                 self.prevTokens = tokens
 
                 # set total number of tokens held by Place for statistics, default 0, updated automatically during simulation
-                if(_checkType(totalTokens) == 'int'):
-                    if(totalTokens < 0):
+                if (_checkType(totalTokens) == 'int'):
+                    if (totalTokens < 0):
                         del self
                         raise Exception(
                             "The number of total tokens set for Place named: " + name + " must not be smaller than 0!")
                     else:
-                        if(tokens > totalTokens):
+                        if (tokens > totalTokens):
                             # if tokens was set, assign same value
                             self.totalTokens = tokens
                             self.initTotalTokens = tokens
-                        if(tokens <= totalTokens):
+                        if (tokens <= totalTokens):
                             self.totalTokens = totalTokens
                             self.initTotalTokens = totalTokens
                 else:
@@ -61,17 +63,17 @@ class Place:
                         "The number of total tokens set for Place named: " + name + " must be an integer number!")
 
                 # set maximum number of tokens held by Place for statistics, default 0, updated automatically during simulation
-                if(_checkType(maxTokens) == 'int'):
-                    if(maxTokens < 0):
+                if (_checkType(maxTokens) == 'int'):
+                    if (maxTokens < 0):
                         del self
                         raise Exception(
                             "The number of maximum tokens set for Place named: " + name + " must not be smaller than 0!")
                     else:
-                        if(tokens > maxTokens):
+                        if (tokens > maxTokens):
                             # if tokens was set, assign same value
                             self.maxTokens = tokens
                             self.initMaxTokens = tokens
-                        if(tokens <= maxTokens):
+                        if (tokens <= maxTokens):
                             self.maxTokens = maxTokens
                             self.initMaxTokens = maxTokens
                 else:
@@ -114,7 +116,7 @@ class Place:
             f"\tmaximum tokens held: {self.maxTokens},\n"
             f"\tnumber of originating Input Arcs: {len(self.inputArcs)},\n"
             "\tlist of originating Input Arcs:\n")
-        if(len(self.inputArcs) == 0):
+        if (len(self.inputArcs) == 0):
             returnString += '\t\t' + 'None' + '\n'
         else:
             for arc in self.inputArcs:
@@ -122,7 +124,7 @@ class Place:
                     '\t\t'.join(str(arc).splitlines(True)) + '\n'
         returnString += f"\tnumber of targeting Output Arcs: {len(self.outputArcs)},\n"
         returnString += "\tlist of targeting Output Arcs:\n"
-        if(len(self.outputArcs) == 0):
+        if (len(self.outputArcs) == 0):
             returnString += '\t\t' + 'None' + '\n'
         else:
             for arc in self.outputArcs:
@@ -130,7 +132,7 @@ class Place:
                     '\t\t'.join(str(arc).splitlines(True)) + '\n'
         returnString += f"\tnumber of originating Inhibitor Arcs: {len(self.inhibArcs)},\n"
         returnString += "\tlist of originating Inhibitor Arcs:\n"
-        if(len(self.inhibArcs) == 0):
+        if (len(self.inhibArcs) == 0):
             returnString += '\t\t' + 'None' + '\n'
         else:
             for arc in self.inhibArcs:
@@ -139,7 +141,7 @@ class Place:
 
         return returnString
 
-    def resetState(self):
+    def _resetState(self):
         '''
         Resets the Place to its initial state after a simulation run.
         '''
@@ -148,11 +150,7 @@ class Place:
         self.totalTokens = self.initTotalTokens
         self.maxTokens = self.initMaxTokens
 
-    # TODO: delete getter setters, not needed?
-    #
-    #
-    #
-
+    # getter-setters
     # NAME
 
     def setName(self, newName: str):
@@ -226,10 +224,10 @@ class Place:
         @param *inputArcList: New tuple of Input Arcs to be added to Place's Input Arc list, must be a tuple of instances of class Input Arc, Input Arcs must be assigned to same Petri Net instance
         '''
         for arc in inputArcList:
-            if(_checkType(arc) != "InputArc"):
+            if (_checkType(arc) != "InputArc"):
                 raise Exception(
                     "Place's new Input Arc list's elements must be instances of class Input Arc")
-            if(arc.petriNet != self.petriNet):
+            if (arc.petriNet != self.petriNet):
                 raise Exception(
                     "Place's new Input Arc list's elements must be assigned to same Petri Net of Place!")
 
@@ -261,10 +259,10 @@ class Place:
         Note: this function adds one new Input Arc to the Place's Input Arc list. To overwrite the list with a tuple of multiple Input Arcs, use setInputArcs.
         @param newInputArc: New Input Arc to be added to Place's Input Arc list, must be instance of class Input Arc, must be assigned to same Petri Net instance
         '''
-        if(_checkType(newInputArc) != "InputArc"):
+        if (_checkType(newInputArc) != "InputArc"):
             raise Exception(
                 "Place's new Input Arc must be instance of class Input Arc")
-        if(newInputArc.petriNet != self.petriNet):
+        if (newInputArc.petriNet != self.petriNet):
             raise Exception(
                 "Place's new Input Arc must be assigned to same Petri Net of Place!")
 
@@ -281,10 +279,10 @@ class Place:
         @param *outputArcList: New tuple of Output Arcs to be added to Place's Output Arc list, must be a tuple of instances of class Output Arc, Output Arcs must be assigned to same Petri Net instance
         '''
         for arc in outputArcList:
-            if(_checkType(arc) != "OutputArc"):
+            if (_checkType(arc) != "OutputArc"):
                 raise Exception(
                     "Place's new Output Arc list's elements must be instances of class Output Arc")
-            if(arc.petriNet != self.petriNet):
+            if (arc.petriNet != self.petriNet):
                 raise Exception(
                     "Place's new Output Arc list's elements must be assigned to same Petri Net of Place!")
 
@@ -316,10 +314,10 @@ class Place:
         Note: this function adds one new Output Arc to the Place's Output Arc list. To overwrite the list with a tuple of multiple Output Arcs, use setOutputArcs.
         @param newOutputArc: New Output Arc to be added to Place's Output Arc list, must be instance of class Output Arc, must be assigned to same Petri Net instance
         '''
-        if(_checkType(newOutputArc) != "OutputArc"):
+        if (_checkType(newOutputArc) != "OutputArc"):
             raise Exception(
                 "Place's new Output Arc must be instance of class Output Arc")
-        if(newOutputArc.petriNet != self.petriNet):
+        if (newOutputArc.petriNet != self.petriNet):
             raise Exception(
                 "Place's new Output Arc must be assigned to same Petri Net of Place!")
 
@@ -336,10 +334,10 @@ class Place:
         @param *inhibArcList: New tuple of Inhibitor Arcs to be added to Place's Inhibitor Arc list, must be a tuple of instances of class Inhibitor Arc, Inhibitor Arcs must be assigned to same Petri Net instance
         '''
         for arc in inhibArcList:
-            if(_checkType(arc) != "InhibArc"):
+            if (_checkType(arc) != "InhibArc"):
                 raise Exception(
                     "Place's new Inhibitor Arc list's elements must be instances of class Inhibitor Arc")
-            if(arc.petriNet != self.petriNet):
+            if (arc.petriNet != self.petriNet):
                 raise Exception(
                     "Place's new Inhibitor Arc list's elements must be assigned to same Petri Net of Place!")
 
@@ -371,10 +369,10 @@ class Place:
         Note: this function adds one new Inhibitor Arc to the Place's Inhibitor Arc list. To overwrite the list with a tuple of multiple Inhibitor Arcs, use setInhibArcs.
         @param newInhibArc: New Inhibitor Arc to be added to Place's Inhibitor Arc list, must be instance of class Inhibitor Arc, must be assigned to same Petri Net instance
         '''
-        if(_checkType(newInhibArc) != "InhibArc"):
+        if (_checkType(newInhibArc) != "InhibArc"):
             raise Exception(
                 "Place's new Inhibitor Arc must be instance of class Inhibitor Arc")
-        if(newInhibArc.petriNet != self.petriNet):
+        if (newInhibArc.petriNet != self.petriNet):
             raise Exception(
                 "Place's new Inhibitor Arc must be assigned to same Petri Net of Place!")
 
@@ -385,6 +383,9 @@ class Place:
 
 
 def _checkName(petriNet, name):
+    '''
+    Helper method used to check if Place with given name already exists in given Petri Net.
+    '''
     for place in petriNet.placeList:
         if (place.name == name):
             return False
@@ -392,4 +393,7 @@ def _checkName(petriNet, name):
 
 
 def _checkType(object):
+    '''
+    Helper method used to return value type of given object.
+    '''
     return object.__class__.__name__

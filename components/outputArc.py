@@ -1,5 +1,5 @@
 # components/outputArc.py module for Petri Net Project
-# contains class definition for object type output Arc
+# contains class definition for object type Output Arc
 
 class OutputArc:
     '''
@@ -14,7 +14,7 @@ class OutputArc:
             @param petriNet: Reference of parent Petri Net object for Output Arc to be assigned to, must be instance of class PetriNet.
             @param fromTrans: Origin object of the Output Arc, must be instance of class Timed Transition or Immediate Transition.
             @param toPlace: Target object of the Output Arc, must be instance of class Place.
-            @param multiplicity: Multiplicity of the Output Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "Queue.tokens". Default value: 1.
+            @param multiplicity: Multiplicity of the Output Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "PetriNet.findPlaceByName("Queue").tokens". Default value: 1.
         '''
 
         # Type checks
@@ -117,12 +117,9 @@ class OutputArc:
 
         return returnString
 
-    # TODO: delete getter setters, not needed?
-    #
-    #
-    #
-
+    # getter-setters
     # NAME
+
     def setName(self, newName: str):
         '''
         Setter function for name of Output Arc.
@@ -225,6 +222,9 @@ class OutputArc:
 
 
 def _checkName(petriNet, name):
+    '''
+    Helper method used to check if Output Arc with given name already exists in given Petri Net.
+    '''
     for outputArc in petriNet.outputArcList:
         if (outputArc.name == name):
             return False
@@ -232,4 +232,7 @@ def _checkName(petriNet, name):
 
 
 def _checkType(object):
+    '''
+    Helper method used to return value type of given object.
+    '''
     return object.__class__.__name__

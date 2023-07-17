@@ -1,9 +1,17 @@
+# main/generateLogs.py module for Petri Net Project
+# contains logging and filewriting methods for Petri Net experiment/simulation results
+# contains .pnml and graph generating methods to describe and visually represent created Petri Nets
+
+
 import os
 import inspect
 import graphviz
 
 
 def generatePNDescription(PetriNet, fileName: str):
+    '''
+    Method to generate textual description of defined Petri Net. Same output as PetriNet.describe() method.
+    '''
 
     # create folder and file for PetriNet (default: root/logs/...)
     os.makedirs(os.path.dirname(fileName), exist_ok=True)
@@ -24,6 +32,10 @@ def generatePNDescription(PetriNet, fileName: str):
 
 
 def generatePNML(petriNet, fileName: str):
+    '''
+    Method to generate .pnml file describing the defined Petri Net.
+    .pnml (XML) structure follows extended standard of the pnml language, refer to documentation for further information.
+    '''
 
     # create folder and file for PetriNet (default: root/logs/...)
     os.makedirs(os.path.dirname(fileName), exist_ok=True)
@@ -108,7 +120,7 @@ def generatePNML(petriNet, fileName: str):
             # </name>
             print("\t\t\t\t</name>", file=f)
 
-            # <guard> TODO:
+            # <guard>
             print("\t\t\t\t<guard>", file=f)
             if (trans.guard is not None):
 
@@ -122,7 +134,7 @@ def generatePNML(petriNet, fileName: str):
 
                 # <code>
                 print("\t\t\t\t\t<code>", file=f)
-                # <text></text>
+                # <text></text> TODO: check exec with 'oneliner' function definition
                 print("\t\t\t\t\t\t<text>" +
                       str(' '.join(inspect.getsource(trans.guard).split())) + "</text>", file=f)
                 # </code>
@@ -217,7 +229,7 @@ def generatePNML(petriNet, fileName: str):
             # </agePolicy>
             print("\t\t\t\t</agePolicy>", file=f)
 
-            # <guard> TODO:
+            # <guard>
             print("\t\t\t\t<guard>", file=f)
             if (trans.guard is not None):
 
@@ -231,7 +243,7 @@ def generatePNML(petriNet, fileName: str):
 
                 # <code>
                 print("\t\t\t\t\t<code>", file=f)
-                # <text></text>
+                # <text></text> TODO: check exec with 'oneliner' function definition
                 print("\t\t\t\t\t\t<text>" +
                       str(' '.join(inspect.getsource(trans.guard).split())) + "</text>", file=f)
                 # </code>
@@ -274,17 +286,31 @@ def generatePNML(petriNet, fileName: str):
             print("\t\t\t\t\t<text>" + str(input.name) + "</text>", file=f)
             # </name>
             print("\t\t\t\t</name>", file=f)
-            # <inscription>
+            # <inscription> (multiplicity)
             print("\t\t\t\t<inscription>", file=f)
+            # multiplicity is static (number)
             if (input.multiplicity.__class__.__name__ == 'int'):
                 # <text></text>
                 print("\t\t\t\t\t<text>" +
                       str(input.multiplicity) + "</text>", file=f)
+            # multiplicity is dynamic (function)
             elif (input.multiplicity.__class__.__name__ == 'function'):
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
                 # <text></text>
-                print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
-                    input.multiplicity).split())) + "</text>", file=f)
-            # </inscription>
+                print("\t\t\t\t\t\t<text>" +
+                      str(input.multiplicity.__name__) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
+
+                # <code>
+                print("\t\t\t\t\t<code>", file=f)
+                # <text></text> TODO: check exec with 'oneliner' function definition
+                print("\t\t\t\t\t\t<text>" +
+                      str(' '.join(inspect.getsource(input.multiplicity).split())) + "</text>", file=f)
+                # </code>
+                print("\t\t\t\t\t</code>", file=f)
+            # </inscription> (multiplicity)
             print("\t\t\t\t</inscription>", file=f)
             # </arc>
             print("\t\t\t</arc>", file=f)
@@ -305,17 +331,31 @@ def generatePNML(petriNet, fileName: str):
             print("\t\t\t\t\t<text>" + str(output.name) + "</text>", file=f)
             # </name>
             print("\t\t\t\t</name>", file=f)
-            # <inscription>
+            # <inscription> (multiplicity)
             print("\t\t\t\t<inscription>", file=f)
+            # multiplicity is static (number)
             if (output.multiplicity.__class__.__name__ == 'int'):
                 # <text></text>
                 print("\t\t\t\t\t<text>" +
                       str(output.multiplicity) + "</text>", file=f)
+            # multiplicity is dynamic (function)
             elif (output.multiplicity.__class__.__name__ == 'function'):
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
                 # <text></text>
-                print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
-                    output.multiplicity).split())) + "</text>", file=f)
-            # </inscription>
+                print("\t\t\t\t\t\t<text>" +
+                      str(output.multiplicity.__name__) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
+
+                # <code>
+                print("\t\t\t\t\t<code>", file=f)
+                # <text></text> TODO: check exec with 'oneliner' function definition
+                print("\t\t\t\t\t\t<text>" +
+                      str(' '.join(inspect.getsource(output.multiplicity).split())) + "</text>", file=f)
+                # </code>
+                print("\t\t\t\t\t</code>", file=f)
+            # </inscription> (multiplicity)
             print("\t\t\t\t</inscription>", file=f)
             # </arc>
             print("\t\t\t</arc>", file=f)
@@ -336,17 +376,31 @@ def generatePNML(petriNet, fileName: str):
             print("\t\t\t\t\t<text>" + str(inhib.name) + "</text>", file=f)
             # </name>
             print("\t\t\t\t</name>", file=f)
-            # <inscription>
+            # <inscription> (multiplicity)
             print("\t\t\t\t<inscription>", file=f)
+            # multiplicity is static (number)
             if (inhib.multiplicity.__class__.__name__ == 'int'):
                 # <text></text>
                 print("\t\t\t\t\t<text>" +
                       str(inhib.multiplicity) + "</text>", file=f)
+            # multiplicity is dynamic (function)
             elif (inhib.multiplicity.__class__.__name__ == 'function'):
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
                 # <text></text>
-                print("\t\t\t\t\t<text>" + str(' '.join(inspect.getsource(
-                    inhib.multiplicity).split())) + "</text>", file=f)
-            # </inscription>
+                print("\t\t\t\t\t\t<text>" +
+                      str(inhib.multiplicity.__name__) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
+
+                # <code>
+                print("\t\t\t\t\t<code>", file=f)
+                # <text></text> TODO: check exec with 'oneliner' function definition
+                print("\t\t\t\t\t\t<text>" +
+                      str(' '.join(inspect.getsource(inhib.multiplicity).split())) + "</text>", file=f)
+                # </code>
+                print("\t\t\t\t\t</code>", file=f)
+            # </inscription> (multiplicity)
             print("\t\t\t\t</inscription>", file=f)
             # </arc>
             print("\t\t\t</arc>", file=f)
@@ -360,6 +414,11 @@ def generatePNML(petriNet, fileName: str):
 
 
 def generatePNGraph(petriNet, fileName: str):
+    '''
+    Method to generate graphic file visualizing the defined Petri Net.
+    Output consists of .png file and .gv file containing a dot language description of the Petri Net.
+    Method uses graphviz library's graph generation engine (based on dot language).
+    '''
 
     graph = graphviz.Digraph(
         format='png', comment=petriNet.name + " Petri Net")
@@ -392,6 +451,9 @@ def generatePNGraph(petriNet, fileName: str):
 
 
 def generateLogFile(logText: str, logPath: str, verbose: int, tab: bool = False):
+    '''
+    Method to generate textual log of results of experiment (and its individual simulation runs) into a logfile. Content's level of detail varies based on set verbosity.
+    '''
 
     if (verbose > 0):
         os.makedirs(os.path.dirname(logPath), exist_ok=True)

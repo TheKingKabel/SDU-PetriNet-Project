@@ -12,9 +12,9 @@ class InputArc:
         Arguments:
             @param name: Name of the Input Arc, must be string, must be unique amongst Input Arc names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Input Arc to be assigned to, must be instance of class PetriNet.
-            @param fromPlace: Origin object of the Input Arc, must be instance of class Place.
+            @param fromPlace: Origin/source object of the Input Arc, must be instance of class Place.
             @param toTrans: Target object of the Input Arc, must be instance of class Timed Transition or Immediate Transition.
-            @param multiplicity: Multiplicity of the Input Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "Queue.tokens". Default value: 1.
+            @param multiplicity: Multiplicity of the Input Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "PetriNet.findPlaceByName("Queue").tokens". Default value: 1.
         '''
 
         # Type checks
@@ -117,12 +117,9 @@ class InputArc:
 
         return returnString
 
-    # TODO: delete getter setters, not needed?
-    #
-    #
-    #
-
+    # getter-setters
     # NAME
+
     def setName(self, newName: str):
         '''
         Setter function for name of Input Arc.
@@ -225,6 +222,9 @@ class InputArc:
 
 
 def _checkName(petriNet, name):
+    '''
+    Helper method used to check if Input Arc with given name already exists in given Petri Net.
+    '''
     for inputArc in petriNet.inputArcList:
         if (inputArc.name == name):
             return False
@@ -232,4 +232,7 @@ def _checkName(petriNet, name):
 
 
 def _checkType(object):
+    '''
+    Helper method used to return value type of given object.
+    '''
     return object.__class__.__name__

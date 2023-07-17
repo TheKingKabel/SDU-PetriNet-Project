@@ -2,6 +2,7 @@
 # contains class definition for object type Petri Net
 # TODO: to be imported to users' project modules
 
+
 import random
 import statistics
 import math
@@ -19,6 +20,7 @@ from .simulation import simulation
 from .generateLogs import generatePNDescription, generatePNML, generateLogFile, generatePNGraph
 from datetime import datetime
 
+
 # list of user created Petri Net's (in active module)
 petriNetList = []
 
@@ -26,7 +28,7 @@ petriNetList = []
 def createNewPN(name: str):
     '''
     Method used to create (define) new instance of Petri Net class.
-    Calls the dedault constructor method (init) with same parameters.
+    Calls the default constructor method (init) with same parameters.
     Arguments:
         @param name: Name of the Petri Net, must be string, must be unique amongst Petri Net names created by user in the same module.
     '''
@@ -40,7 +42,6 @@ def loadExistingPN(filePath: str, newName: str = None):
         @param filePath: Path of the generated .pnml file to generate Petri Net object from.
         @param newName (optional): New name for the reconstructed Petri Net (will not overwrite already existing Petri Net files with old name).
     '''
-    # pass TODO: remove
 
     # check if file exists at path
     if (not os.path.isfile(filePath)):
@@ -85,9 +86,6 @@ def loadExistingPN(filePath: str, newName: str = None):
         # store place reference in dictionary
         PNDict["places"].update({element.get('id'): place})
 
-        print(str(place_name) + ', init: ' + str(place_initT) +
-              ', tt: ' + str(place_initTT) + ', mt: ' + str(place_initMT))
-
     # TRANSITIONS
     PNDict.update({"transitions": {}})
 
@@ -110,10 +108,11 @@ def loadExistingPN(filePath: str, newName: str = None):
         transition_agePolicy = element.find(
             'pnml:agePolicy/pnml:text', namespace).text
 
-        # create guard function dynamically TODO:
+        # create guard function dynamically
         if (element.find('pnml:guard/pnml:text', namespace).text == 'None'):
             transition_guard = None
         else:
+            # exec() usage TODO: check documentation!
             exec(element.find('pnml:guard/pnml:code/pnml:text', namespace).text)
             transition_guard = globals()[element.find(
                 'pnml:guard/pnml:name/pnml:text', namespace).text]
@@ -130,18 +129,12 @@ def loadExistingPN(filePath: str, newName: str = None):
         # store transition reference in dictionary
         PNDict["transitions"].update({element.get('id'): timedTransition})
 
-        print(str(transition_name) + ', ' + str(transition_distType) +
-              ', ' + str(transition_distArg1) + ', ' + str(transition_distArg2) +
-              ', ' + str(transition_distArg3) + ', ' + str(transition_distArg4) +
-              ', ' + str(transition_timeUnit) + ', ' + str(transition_agePolicy) +
-              ', ' + str(transition_guard) + ', ' + str(transition_fireCount))
-
     # IMMEDIATE TRANSITIONS
     for element in root.findall('.//pnml:transition[@type="immediate"]', namespace):
 
         transition_name = element.find('pnml:name/pnml:text', namespace).text
 
-        # create guard function dynamically TODO:
+        # create guard function dynamically
         if (element.find('pnml:guard/pnml:text', namespace).text == 'None'):
             transition_guard = None
         else:
@@ -161,17 +154,22 @@ def loadExistingPN(filePath: str, newName: str = None):
         # store transition reference in dictionary
         PNDict["transitions"].update({element.get('id'): immediateTransition})
 
-        print(str(transition_name) + ', ' + str(transition_guard) +
-              ', ' + str(transition_fireProbability) + ', ' + str(transition_fireCount))
-
     # ARCS
 
     # INPUT ARCS
     for element in root.findall('.//pnml:arc[@type="input"]', namespace):
 
         arc_name = element.find('pnml:name/pnml:text', namespace).text
-        arc_inscription = element.find(
-            'pnml:inscription/pnml:text', namespace).text
+
+        # multiplicity is static (number)
+        if ((element.find('pnml:inscription/pnml:text', namespace).text).isdigit()):
+            arc_multiplicity = int(element.find(
+                'pnml:inscription/pnml:text', namespace).text)
+        else:
+            # multiplicity is dynamic (function)
+            exec(element.find('pnml:inscription/pnml:code/pnml:text', namespace).text)
+            arc_multiplicity = globals()[element.find(
+                'pnml:inscription/pnml:name/pnml:text', namespace).text]
 
         # get place/transition id to find reference from PN dictionary
         arc_source = element.get('source')
@@ -179,17 +177,22 @@ def loadExistingPN(filePath: str, newName: str = None):
 
         # create Input Arc object
         inputArc = InputArc(str(
-            arc_name), petriNet, PNDict['places'][arc_source], PNDict['transitions'][arc_target], int(arc_inscription))
-
-        print("input " + str(arc_name) + ', ' +
-              str(arc_inscription) + ', ' + str(arc_source) + ', ' + str(arc_target))
+            arc_name), petriNet, PNDict['places'][arc_source], PNDict['transitions'][arc_target], arc_multiplicity)
 
     # OUTPUT ARCS
     for element in root.findall('.//pnml:arc[@type="output"]', namespace):
 
         arc_name = element.find('pnml:name/pnml:text', namespace).text
-        arc_inscription = element.find(
-            'pnml:inscription/pnml:text', namespace).text
+
+        # multiplicity is static (number)
+        if ((element.find('pnml:inscription/pnml:text', namespace).text).isdigit()):
+            arc_multiplicity = int(element.find(
+                'pnml:inscription/pnml:text', namespace).text)
+        else:
+            # multiplicity is dynamic (function)
+            exec(element.find('pnml:inscription/pnml:code/pnml:text', namespace).text)
+            arc_multiplicity = globals()[element.find(
+                'pnml:inscription/pnml:name/pnml:text', namespace).text]
 
         # get place/transition id to find reference from PN dictionary
         arc_source = element.get('source')
@@ -197,17 +200,22 @@ def loadExistingPN(filePath: str, newName: str = None):
 
         # create Output Arc object
         outputArc = OutputArc(str(
-            arc_name), petriNet, PNDict['transitions'][arc_source], PNDict['places'][arc_target], int(arc_inscription))
-
-        print("output " + str(arc_name) + ', ' +
-              str(arc_inscription) + ', ' + str(arc_source) + ', ' + str(arc_target))
+            arc_name), petriNet, PNDict['transitions'][arc_source], PNDict['places'][arc_target], arc_inscription)
 
     # INHIBITOR ARCS
     for element in root.findall('.//pnml:arc[@type="inhibitor"]', namespace):
 
         arc_name = element.find('pnml:name/pnml:text', namespace).text
-        arc_inscription = element.find(
-            'pnml:inscription/pnml:text', namespace).text
+
+        # multiplicity is static (number)
+        if ((element.find('pnml:inscription/pnml:text', namespace).text).isdigit()):
+            arc_multiplicity = int(element.find(
+                'pnml:inscription/pnml:text', namespace).text)
+        else:
+            # multiplicity is dynamic (function)
+            exec(element.find('pnml:inscription/pnml:code/pnml:text', namespace).text)
+            arc_multiplicity = globals()[element.find(
+                'pnml:inscription/pnml:name/pnml:text', namespace).text]
 
         # get place/transition id to find reference from PN dictionary
         arc_source = element.get('source')
@@ -215,11 +223,9 @@ def loadExistingPN(filePath: str, newName: str = None):
 
         # create Inhibitor Arc object
         inhibitorArc = InhibArc(str(arc_name), petriNet,
-                                PNDict['places'][arc_source], PNDict['transitions'][arc_target], int(arc_inscription))
+                                PNDict['places'][arc_source], PNDict['transitions'][arc_target], arc_inscription)
 
-        print("inhib " + str(arc_name) + ', ' +
-              str(arc_inscription) + ', ' + str(arc_source) + ', ' + str(arc_target))
-
+    # return Petri Net object
     return petriNet
 
 
@@ -243,7 +249,7 @@ class PetriNet:
             raise Exception("A Petri Net named: " +
                             str(name) + " already exists")
 
-        # create lists to store different objects assigned to current Petri Net
+        # create lists to store various PN objects assigned to current Petri Net
         # list of Place assigned to current Petri Net
         self.placeList = []
 
@@ -294,6 +300,9 @@ class PetriNet:
         return returnString
 
     def findPlaceByName(self, placeName):
+        '''
+        Method to search for a specific Place object assigned to current Petri Net (names are unique). Returns reference to Place.
+        '''
         for place in self.placeList:
             if (place.name == placeName):
                 return place
@@ -311,6 +320,9 @@ class PetriNet:
         return returnString
 
     def findTimedTransitionByName(self, transName):
+        '''
+        Method to search for a specific Timed Transition object assigned to current Petri Net (names are unique). Returns reference to Timed Transition.
+        '''
         for trans in self.timedTransList:
             if (trans.name == transName):
                 return trans
@@ -328,6 +340,9 @@ class PetriNet:
         return returnString
 
     def findImmediateTransitionByName(self, transName):
+        '''
+        Method to search for a specific Immediate Transition object assigned to current Petri Net (names are unique). Returns reference to Immediate Transition.
+        '''
         for trans in self.immediateTransList:
             if (trans.name == transName):
                 return trans
@@ -346,6 +361,9 @@ class PetriNet:
         return returnString
 
     def findInputArcByName(self, inputName):
+        '''
+        Method to search for a specific Input Arc object assigned to current Petri Net (names are unique). Returns reference to Input Arc.
+        '''
         for inputArc in self.inputArcList:
             if (inputArc.name == name):
                 return inputArc
@@ -363,6 +381,9 @@ class PetriNet:
         return returnString
 
     def findOutputArcByName(self, outputName):
+        '''
+        Method to search for a specific Output Arc object assigned to current Petri Net (names are unique). Returns reference to Output Arc.
+        '''
         for outputArc in self.outputArcList:
             if (outputArc.name == name):
                 return outputArc
@@ -380,6 +401,9 @@ class PetriNet:
         return returnString
 
     def findInhibArcByName(self, inhibName):
+        '''
+        Method to search for a specific Inhibitor Arc object assigned to current Petri Net (names are unique). Returns reference to Inhibitor Arc.
+        '''
         for inhibArc in self.inhibList:
             if (inhibArc.name == inhibName):
                 return inhibArc
@@ -388,18 +412,19 @@ class PetriNet:
     def runSimulations(self, expLength: int, simLength: float, verbose: int = 2, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
         # TODO: verbose ?
         '''
-        Method to run a simulation on the Petri Net.
+        Method to run an experiment on the Petri Net.
         Arguments:
-            @param expLength (required): Number of repetitions for the experiment to run individual simulations. Must be integer, must be greater than 0.
-            @param simLength (required): Time length of simulations. Must be float, must not be smaller than 0.
-            @param verbose (optional): Verbosity of log displayed in terminal and file generation. Must be integer, must be 0, 1 or 2. If set to 0: low verbosity, no log is generated to terminal, only PN .pnml, PN description, experiment log, and simulation .csv files are generated. If set to 1: medium verbosity, no log is generated to terminal, all files are generated. If set to 2: high verbosity, all logs are generated to terminal, all files are generated. Default value: 2.
+            @param expLength: Number of repetitions for the experiment to run individual simulations. Must be integer, must be greater than 0.
+            @param simLength: Time length of simulations. Must be float, must not be smaller than 0.
+            @param verbose (optional): Verbosity of log displayed in terminal and file generation. Must be integer, must be 0, 1 or 2. If set to 0: low verbosity, no log is generated to terminal, only PN .pnml, PN graph, PN description, experiment log, and simulation .csv files are generated. If set to 1: medium verbosity, no log is generated to terminal, all files are generated. If set to 2: high verbosity, all logs are generated to terminal, all files are generated. Default value: 2.
             @param randomSeed (optional): Seed for the experiment to generate seeds for random choices and delay generations for individual simulation runs. Must be integer number between 0 and 2**32 - 1. Default value: randomly generated 32 bit sized integer value.
             @param defTimeUnit (optional): Default time unit used in the simulations and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
-            @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to callable functions defined in the user file, returning boolean value True or False, i.e. "Server.tokens >= 1". If not applicable, must be set to None. Default value: None.
+            @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to callable functions defined in the user file, returning boolean value True or False, i.e. "PetriNet.findPlaceByName("Server").tokens >= 1". If not applicable, must be set to None. Default value: None.
             @param logPath (optional): Path of the folder where the experiment result logs will be generated in (creates logs folder at destination). Default value: project root/logs/.
         '''
 
         # Type checking
+
         # experiment length
         if (not expLength.__class__.__name__ == 'int'):
             raise Exception(
@@ -553,6 +578,7 @@ class PetriNet:
 
         generateLogFile("\nExperiment started at: " +
                         str(exp_start) + "\n", experimentFileName, file_verbose)
+
         # logpath to create single simulation logs
         simulationsFolderPath = experimentFolderPath + 'Simulation_results' + '/'
 
@@ -630,11 +656,11 @@ class PetriNet:
 
             # reset the Petri Net to its initial state
             for immediateTrans in self.immediateTransList:
-                immediateTrans.resetState()
+                immediateTrans._resetState()
             for timedTrans in self.timedTransList:
-                timedTrans.resetState()
+                timedTrans._resetState()
             for place in self.placeList:
-                place.resetState()
+                place._resetState()
 
         # calculate confidence intervals for conditional results
 
@@ -684,6 +710,9 @@ class PetriNet:
 
 
 def _checkName(name: str):
+    '''
+    Helper method used to return value type of given object.
+    '''
     for petriNet in petriNetList:
         if (petriNet.name == name):
             return False

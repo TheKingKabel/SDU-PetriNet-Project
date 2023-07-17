@@ -1,5 +1,5 @@
 # definitions/distribution_types.py module for Petri Net Project
-# contains enumeration for distribution setting of Timed Transition objects
+# contains enumeration for distType setting of Timed Transition objects
 # contains function to generate random delay time according to input distribution and distribution parameters
 
 from enum import Enum
@@ -7,6 +7,9 @@ import scipy as sp
 
 
 class DistributionType(Enum):
+    '''
+    Enumeration of valid Distribution types.
+    '''
     NORM = "Normal"
     UNI = "Uniform"
     CAU = "Cauchy"
@@ -30,6 +33,10 @@ class DistributionType(Enum):
 
 
 def getDelay(distribution, a=0.0, b=1.0, c=0.0, d=0.0):
+    '''
+    Function to return next firing delay for Timed Transitions (called when firing becomes enabled during simulation).
+    Function uses scipy library's scipy.stats.<distribution>.rvs sampling method with given parameters.
+    '''
 
     if distribution == "NORM":
         return abs(sp.stats.norm.rvs(a, b))

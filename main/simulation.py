@@ -1,3 +1,9 @@
+# main/simulation.py module for Petri Net Project
+# contains the algorithm(s) and logics responsible for exectuion of a single Petri Net simulation run
+# contains logging and filewriting methods for Petri Net experiment/simulation results
+# contains .csv and textual log generating methods to output simulation data of a single simulation run
+
+
 import random
 import os
 import numpy as np
@@ -7,6 +13,10 @@ from .generateLogs import generateLogFile
 
 
 def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUnitType, conditionals, filePath: str, simCount: int):
+    '''
+    Main algorithm to handle the logics, execution and processing of a single simulation run.
+    Commonly used functions and helper functions are in separate methods.
+    '''
 
     # set seed for current simulation run
     # generating random delays is done with scipy library, which uses the numpy library's random function
@@ -329,7 +339,12 @@ def simulation(PetriNet, simLength, simSeed, verbose: int,  defTimeUnit: TimeUni
 
 
 def checkEnabledImmediateTrans(PetriNet):
+    '''
+    Function used to iterate through and discover enabled Immediate Transitions.
+    Repeated at each simulation step, and additionally after each event execution.
+    '''
 
+    # empty list to store and return references to enabled transitions
     enabledImmediateTransList = []
 
     for immediateTrans in PetriNet.immediateTransList:
@@ -364,7 +379,7 @@ def checkEnabledImmediateTrans(PetriNet):
             if (jump):
                 continue
 
-        # check for input arcs
+        # check for input arcs according to defined multiplicity each
         if (len(immediateTrans.inputArcs) > 0):
             jump = False
             for input in immediateTrans.inputArcs:
@@ -383,11 +398,17 @@ def checkEnabledImmediateTrans(PetriNet):
 
         enabledImmediateTransList.append(immediateTrans)
 
+    # return list of enabled transitions (can be None)
     return enabledImmediateTransList
 
 
 def checkEnabledTimedTrans(PetriNet, simulationTime, FEL, simTimeUnit):
+    '''
+    Function used to iterate through and discover enabled Timed Transitions.
+    Repeated at each simulation step, and additionally after each event execution.
+    '''
 
+    # empty list to store and return references to enabled transitions
     enabledTimedTransList = []
 
     for timedTrans in PetriNet.timedTransList:
@@ -430,7 +451,7 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL, simTimeUnit):
             if (jump):
                 continue
 
-        # check for input arcs
+        # check for input arcs according to defined multiplicity each
         if (len(timedTrans.inputArcs) > 0):
             jump = False
             for input in timedTrans.inputArcs:
@@ -455,14 +476,14 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL, simTimeUnit):
             if (jump):
                 continue
 
-        # firing is enabled, generate delay for timed transition
+        # if firing is enabled, generate delay for timed transition
         if (timedTrans.delay is None):
             delay = generateDelay(timedTrans, simulationTime, simTimeUnit)
             FEL.append((timedTrans, delay))
             FEL.sort(key=sortDelay)
             continue
 
-        # re-enabled timed transition with race age policy
+        # check for re-enabled timed transition with race age policy
         if (timedTrans.agePolicy == 'R_AGE'):
             if (FEL.count((timedTrans, timedTrans.delay)) == 0):
                 FEL.append((timedTrans, timedTrans.delay))
@@ -475,12 +496,17 @@ def checkEnabledTimedTrans(PetriNet, simulationTime, FEL, simTimeUnit):
 
         enabledTimedTransList.append(timedTrans)
 
+    # return list of enabled transitions (can be None)
     return enabledTimedTransList, FEL
 
 
 def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
+    '''
+    Function used to process single enabled event.
+    Repeated while there are enabled Transitions in the enabledTransitions list.
+    '''
 
-    # update statistics
+    # update transition statistics
     enabledTrans.fireCount += 1
 
     # building event info string for log
@@ -505,7 +531,7 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
             eventString += ' tokens removed from Place ' + input.fromPlace.name + ', '
 
     # add tokens to output places according to arc multiplicity
-    # update Place token statistics
+    # update place statistics
     if (len(enabledTrans.outputArcs) > 0):
         for output in enabledTrans.outputArcs:
             if (checkType(output.multiplicity) == 'int'):
@@ -531,20 +557,36 @@ def processEvent(eventNo, enabledTrans, filePath, FEL, verbose):
 
 
 def generateDelay(trans, simulationTime, simTimeUnit):
+    '''
+    Method to call delay generation function from distribution_types.py, and check for potential need for multiplier (in case transition's unit type differs from simulation's default time unit).
+    '''
 
+    # generate random delay based on distribution type, distribution parameters
+    # multiply returned value with potential multiplier (default: 1) and add current simulation global time
     trans.delay = (getDelay(trans.distType, trans.a,
                             trans.b, trans.c, trans.d) * getTimeMultiplier(simTimeUnit, trans.timeUnitType)) + simulationTime
 
+    # return the the timestamp of the next (expected) firing
     return trans.delay
 
 
 def sortDelay(tuple):
+    '''
+    Helper function for sorting the FEL in ascending order, based on firing times.
+    '''
     return tuple[1]
 
 
 def checkCompetitiveTransitions(PetriNet):
+    '''
+    Function used to iterate through and discover competing Immediate Transitions.
+    Called at the start/set-up phase of each simulation, flags competing transitions, and collects them in separate list.
+    Competing Immediate Transition events are executed in separate function.
+    '''
 
+    # create list of tuples of competing transitions to keep track of
     competitiveTransList = []
+    # create list of tuples of firing possibilities of competing transitions
     competitiveProbabilities = []
 
     for place in PetriNet.placeList:
@@ -560,15 +602,24 @@ def checkCompetitiveTransitions(PetriNet):
             competitiveTransList.append(transTuple)
             competitiveProbabilities.append(probTuple)
 
+    # return list of tuples of competing transitions and their firing probabilities
     return competitiveTransList, competitiveProbabilities
 
 
 def checkType(object):
+    '''
+    Helper method used to return value type of given object.
+    '''
     return object.__class__.__name__
 
 
 def checkEnabledCompetingImmediateTrans(transList, probList):
+    '''
+    Function used to iterate through and discover enabled competing Immediate Transitions.
+    Repeated at each simulation step, and additionally after each event execution.
+    '''
 
+    # empty list to store and return references to enabled transitions
     enabledChoices = []
 
     for id, choices in enumerate(transList):
@@ -578,7 +629,7 @@ def checkEnabledCompetingImmediateTrans(transList, probList):
         for option in choices:
 
             # safety check if competing event was discovered and registered during PN initialization
-            # TODO: redundant, remove?
+            # Note: safety check
             if (not option.competing):
                 disableChoice = True
                 break
@@ -611,7 +662,7 @@ def checkEnabledCompetingImmediateTrans(transList, probList):
                     disableChoice = True
                     break
 
-            # check for input arcs
+            # check for input arcs according to defined multiplicity each
             if (len(option.inputArcs) > 0):
                 jump = False
                 for input in option.inputArcs:
@@ -631,7 +682,10 @@ def checkEnabledCompetingImmediateTrans(transList, probList):
 
         if (disableChoice):
             continue
+
+        # if all choices are enabled, choose one transition randomly, based on their set probabilities
         choice = random.choices(choices, probList[id])
         enabledChoices = enabledChoices + choice
 
+    # return list of enabled transitions (can be None)
     return enabledChoices

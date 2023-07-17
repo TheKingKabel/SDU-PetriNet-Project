@@ -12,9 +12,9 @@ class InhibArc:
         Arguments:
             @param name: Name of the Inhibitor Arc, must be string, must be unique amongst Inhibitor Arc names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Inhibitor Arc to be assigned to, must be instance of class PetriNet.
-            @param origin: Origin object of the Inhibitor Arc, must be instance of class Place.
+            @param origin: Origin/source object of the Inhibitor Arc, must be instance of class Place.
             @param target: Target object of the Inhibitor Arc, must be instance of class Timed Transition or Immediate Transition.
-            @param multiplicity: Multiplicity of the Inhibitor Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "Queue.tokens". Default value: 1.
+            @param multiplicity: Multiplicity of the Inhibitor Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "PetriNet.findPlaceByName("Queue").tokens". Default value: 1.
         '''
 
         # Type checks
@@ -117,12 +117,9 @@ class InhibArc:
 
         return returnString
 
-    # TODO: delete getter setters, not needed?
-    #
-    #
-    #
-
+    # getter-setters
     # NAME
+
     def setName(self, newName: str):
         '''
         Setter function for name of Inhibitor.
@@ -224,6 +221,9 @@ class InhibArc:
 
 
 def _checkName(petriNet, name):
+    '''
+    Helper method used to check if Inhibitor Arc with given name already exists in given Petri Net.
+    '''
     for inhibArc in petriNet.inhibList:
         if (inhibArc.name == name):
             return False
@@ -231,4 +231,7 @@ def _checkName(petriNet, name):
 
 
 def _checkType(object):
+    '''
+    Helper method used to return value type of given object.
+    '''
     return object.__class__.__name__
