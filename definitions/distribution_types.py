@@ -32,6 +32,72 @@ class DistributionType(Enum):
     POI = "Poisson"
 
 
+def getArgCount(distribution):
+    '''
+    Function used to return number of arguments required for distribution type.
+    '''
+
+    if distribution == "NORM":
+        return int(2)
+
+    if distribution == "UNI":
+        return int(2)
+
+    if distribution == "CAU":
+        return int(2)
+
+    if distribution == "T_D":
+        return int(2)
+
+    if distribution == "F_D":
+        return int(4)
+
+    if distribution == "CHI":
+        return int(3)
+
+    if distribution == "EXP":
+        return int(2)
+
+    if distribution == "WEI_MIN":
+        return int(3)
+
+    if distribution == "WEI_MAX":
+        return int(3)
+
+    if distribution == "LOGN":
+        return int(3)
+
+    if distribution == "BI_SA":
+        return int(3)
+
+    if distribution == "GAMMA":
+        return int(3)
+
+    if distribution == "D_EXP":
+        return int(2)
+
+    if distribution == "P_NORM":
+        return int(3)
+
+    if distribution == "P_LOGN":
+        return int(4)
+
+    if distribution == "TU_LAMBDA":
+        return int(3)
+
+    if distribution == "GEV":
+        return int(3)
+
+    if distribution == "BETA":
+        return int(4)
+
+    if distribution == "BIN":
+        return int(3)
+
+    if distribution == "POI":
+        return int(2)
+
+
 def getDelay(distribution, a=0.0, b=1.0, c=0.0, d=0.0):
     '''
     Function to return next firing delay for Timed Transitions (called when firing becomes enabled during simulation).

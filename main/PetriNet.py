@@ -200,7 +200,7 @@ def loadExistingPN(filePath: str, newName: str = None):
 
         # create Output Arc object
         outputArc = OutputArc(str(
-            arc_name), petriNet, PNDict['transitions'][arc_source], PNDict['places'][arc_target], arc_inscription)
+            arc_name), petriNet, PNDict['transitions'][arc_source], PNDict['places'][arc_target], arc_multiplicity)
 
     # INHIBITOR ARCS
     for element in root.findall('.//pnml:arc[@type="inhibitor"]', namespace):
@@ -223,7 +223,7 @@ def loadExistingPN(filePath: str, newName: str = None):
 
         # create Inhibitor Arc object
         inhibitorArc = InhibArc(str(arc_name), petriNet,
-                                PNDict['places'][arc_source], PNDict['transitions'][arc_target], arc_inscription)
+                                PNDict['places'][arc_source], PNDict['transitions'][arc_target], arc_multiplicity)
 
     # return Petri Net object
     return petriNet

@@ -2,6 +2,7 @@
 # contains class definition for object type Timed Transition
 
 from definitions.distribution_types import DistributionType
+from definitions.distribution_types import getArgCount
 from definitions.agepolicy_types import AgePolicyType
 from definitions.timeunit_types import TimeUnitType
 
@@ -184,7 +185,13 @@ class TimedTransition:
             f"\tin Petri Net named: {self.petriNet.name},\n"
             f"\twith guard function: {self.guard},\n"
             f"\twith distribution type: {self.distType},\n"
-            f"\tdistribution arguments: {self.a}, {self.b}, {self.c}, {self.d},\n"
+            f"\tdistribution arguments: {self.a}, {self.b}"
+        )
+        if (getArgCount(self.distType) == 3):
+            returnString += f", {self.c},\n"
+        elif (getArgCount(self.distType) == 4):
+            returnString += f", {self.c}, {self.d},\n"
+        returnString += (
             f"\ttime unit: {self.timeUnitType},\n"
             f"\tage policy: {self.agePolicy},\n"
             f"\tcurrent firing times: {self.fireCount},\n"

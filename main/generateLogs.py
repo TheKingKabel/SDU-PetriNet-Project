@@ -208,6 +208,13 @@ def generatePNML(petriNet, fileName: str):
             # <distributionArg3> (distArgC)
             print("\t\t\t\t</distributionArg3>", file=f)
 
+            # <distributionArg3> (distArgC)
+            print("\t\t\t\t<distributionArg3>", file=f)
+            # <text></text>
+            print("\t\t\t\t\t<text>" + str(trans.c) + "</text>", file=f)
+            # <distributionArg3> (distArgC)
+            print("\t\t\t\t</distributionArg3>", file=f)
+
             # <distributionArg4> (distArgD)
             print("\t\t\t\t<distributionArg4>", file=f)
             # <text></text>
