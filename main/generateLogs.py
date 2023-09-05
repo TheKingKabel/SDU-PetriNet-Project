@@ -6,6 +6,7 @@
 import os
 import inspect
 import graphviz
+from xml.sax.saxutils import escape
 
 
 def generatePNDescription(PetriNet, fileName: str):
@@ -136,13 +137,17 @@ def generatePNML(petriNet, fileName: str):
                 print("\t\t\t\t\t<code>", file=f)
                 # <text></text> TODO: check exec with 'oneliner' function definition
                 print("\t\t\t\t\t\t<text>" +
-                      str(' '.join(inspect.getsource(trans.guard).split())) + "</text>", file=f)
+                      str(' '.join(escape(inspect.getsource(trans.guard)).split())) + "</text>", file=f)
                 # </code>
                 print("\t\t\t\t\t</code>", file=f)
 
             else:
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
                 # <text></text>
-                print("\t\t\t\t\t<text>" + str(None) + "</text>", file=f)
+                print("\t\t\t\t\t\t<text>" + str(None) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
 
             # </guard>
             print("\t\t\t\t</guard>", file=f)
@@ -252,13 +257,17 @@ def generatePNML(petriNet, fileName: str):
                 print("\t\t\t\t\t<code>", file=f)
                 # <text></text> TODO: check exec with 'oneliner' function definition
                 print("\t\t\t\t\t\t<text>" +
-                      str(' '.join(inspect.getsource(trans.guard).split())) + "</text>", file=f)
+                      str(' '.join(escape(inspect.getsource(trans.guard)).split())) + "</text>", file=f)
                 # </code>
                 print("\t\t\t\t\t</code>", file=f)
 
             else:
+                # <name>
+                print("\t\t\t\t\t<name>", file=f)
                 # <text></text>
-                print("\t\t\t\t\t<text>" + str(None) + "</text>", file=f)
+                print("\t\t\t\t\t\t<text>" + str(None) + "</text>", file=f)
+                # </name>
+                print("\t\t\t\t\t</name>", file=f)
 
             # </guard>
             print("\t\t\t\t</guard>", file=f)

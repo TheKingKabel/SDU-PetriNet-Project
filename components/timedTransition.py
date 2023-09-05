@@ -1,6 +1,7 @@
 # components/timedTransition.py module for Petri Net Project
 # contains class definition for object type Timed Transition
 
+import inspect
 from definitions.distribution_types import DistributionType
 from definitions.distribution_types import getArgCount
 from definitions.agepolicy_types import AgePolicyType
@@ -183,7 +184,12 @@ class TimedTransition:
             f"Timed Transition\n"
             f"\tname: {self.name},\n"
             f"\tin Petri Net named: {self.petriNet.name},\n"
-            f"\twith guard function: {self.guard},\n"
+        )
+        if (self.guard is None):
+            returnString += f"\twith guard function: {self.guard},\n"
+        else:
+            returnString += f"\twith guard function: {str(' '.join(inspect.getsource(self.guard).split()))},\n"
+        returnString += (
             f"\twith distribution type: {self.distType},\n"
             f"\tdistribution arguments: {self.a}, {self.b}"
         )

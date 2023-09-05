@@ -17,5 +17,10 @@ def exactQueue():
     return loadBank.findPlaceByName("PQueue").tokens == 2
 
 
-loadBank.runSimulations(10, 8, 1, 1337, defTimeUnit='hr', conditionals=[
-    ('Busy bank teller', .05, serverBusy), ('Lot of customers', .10, bigQueue), ('Queue of customers is exactly 2', .15, exactQueue)])
+loadBank.runSimulations(10, 8, 1, 1337,
+                        defTimeUnit='hr', conditionals=[
+                            ('Busy bank teller', .05, serverBusy),
+                            ('Lot of customers', .10, bigQueue),
+                            ('Queue of customers is exactly 2', .15, exactQueue)
+                        ]
+                        )

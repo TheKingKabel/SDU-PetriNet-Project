@@ -1,15 +1,6 @@
 from main.PetriNet import *
 
-# a more advanced version of the bank example
-# customers are entering the banks via TEnter at random intervals
-# one bank clerk is servicing them which takes a random amount of time for him too
-# as additional info, we'd like to know about...
-#   1. the downtime of the server (when out bank teller is busy)
-#   2. the occurrences of a 'big queue' accumulating in our small bank ("Four's a Crowd")
-#   3. the times the queue is exactly 2 people waiting for their turns
 
-
-# definition of PN, following recommended structure and typing
 bank = PetriNet("Bank")
 
 TEnter = TimedTransition("TEnter", bank, "NORM", 5.0, 25.0, timeUnitType='min')

@@ -5,6 +5,7 @@
 
 import random
 import statistics
+import html
 import math
 import os
 import scipy
@@ -23,6 +24,16 @@ from datetime import datetime
 
 # list of user created Petri Net's (in active module)
 petriNetList = []
+
+
+def findPetriNetByName(name: str):
+    '''
+    Method to search for a specific Petri Net object by its (unique) name. Returns reference to Petri Net.
+    '''
+    for petriNet in petriNetList:
+        if (petriNet.name == name):
+            return petriNet
+    raise Exception('Petri Net does not exists with name: ' + name)
 
 
 def createNewPN(name: str):
@@ -109,11 +120,12 @@ def loadExistingPN(filePath: str, newName: str = None):
             'pnml:agePolicy/pnml:text', namespace).text
 
         # create guard function dynamically
-        if (element.find('pnml:guard/pnml:text', namespace).text == 'None'):
+        if (element.find('pnml:guard/pnml:name/pnml:text', namespace).text == 'None'):
             transition_guard = None
         else:
             # exec() usage TODO: check documentation!
-            exec(element.find('pnml:guard/pnml:code/pnml:text', namespace).text)
+            exec(html.unescape(element.find(
+                'pnml:guard/pnml:code/pnml:text', namespace).text))
             transition_guard = globals()[element.find(
                 'pnml:guard/pnml:name/pnml:text', namespace).text]
 
@@ -135,11 +147,12 @@ def loadExistingPN(filePath: str, newName: str = None):
         transition_name = element.find('pnml:name/pnml:text', namespace).text
 
         # create guard function dynamically
-        if (element.find('pnml:guard/pnml:text', namespace).text == 'None'):
+        if (element.find('pnml:guard/pnml:name/pnml:text', namespace).text == 'None'):
             transition_guard = None
         else:
-            exec(element.find('pnml:guard/pnml:code/pnml:text', namespace).text)
-            transition_guard = globals()[element.find(
+            exec(html.unescape(element.find(
+                'pnml:guard/pnml:code/pnml:text', namespace).text))
+            transition_guard = locals()[element.find(
                 'pnml:guard/pnml:name/pnml:text', namespace).text]
 
         transition_fireProbability = element.find(
@@ -168,7 +181,7 @@ def loadExistingPN(filePath: str, newName: str = None):
         else:
             # multiplicity is dynamic (function)
             exec(element.find('pnml:inscription/pnml:code/pnml:text', namespace).text)
-            arc_multiplicity = globals()[element.find(
+            arc_multiplicity = locals()[element.find(
                 'pnml:inscription/pnml:name/pnml:text', namespace).text]
 
         # get place/transition id to find reference from PN dictionary
@@ -416,7 +429,7 @@ class PetriNet:
         Arguments:
             @param expLength: Number of repetitions for the experiment to run individual simulations. Must be integer, must be greater than 0.
             @param simLength: Time length of simulations. Must be float, must not be smaller than 0.
-            @param verbose (optional): Verbosity of log displayed in terminal and file generation. Must be integer, must be 0, 1 or 2. If set to 0: low verbosity, no log is generated to terminal, only PN .pnml, PN graph, PN description, experiment log, and simulation .csv files are generated. If set to 1: medium verbosity, no log is generated to terminal, all files are generated. If set to 2: high verbosity, all logs are generated to terminal, all files are generated. Default value: 2.
+            @param verbose (optional): Verbosity of log displayed in terminal and file generation. Must be integer, must be 0, 1 or 2. If set to 0: low verbosity, no log is generated to terminal, only PN .pnml, PN graph, PN description, experiment log, and simulation .csv files are generated. If set to 1: medium verbosity, no log is generated to terminal, all files are generated. If set to 2: high verbosity, all logs are generated to terminal, all files are generated. Default value: 2. Debugging 4: does not generate .pnml file.
             @param randomSeed (optional): Seed for the experiment to generate seeds for random choices and delay generations for individual simulation runs. Must be integer number between 0 and 2**32 - 1. Default value: randomly generated 32 bit sized integer value.
             @param defTimeUnit (optional): Default time unit used in the simulations and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
             @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to callable functions defined in the user file, returning boolean value True or False, i.e. "PetriNet.findPlaceByName("Server").tokens >= 1". If not applicable, must be set to None. Default value: None.
@@ -443,7 +456,7 @@ class PetriNet:
 
         # verbose
         # TODO: add multiple verbose options?
-        if (not (verbose == 0 or verbose == 1 or verbose == 2)):
+        if (not (verbose == 0 or verbose == 1 or verbose == 2 or verbose == 4)):
             raise Exception(
                 "The value: " + verbose + ", given as verbosity setting is not 0, 1 or 2.")
 
@@ -553,7 +566,8 @@ class PetriNet:
         generatePNDescription(self, PNDescFileName)
         # PNML file
         pnmlFileName = logPath + '/' + self.name + '/' + self.name + '_PetriNet.pnml'
-        generatePNML(self, pnmlFileName)
+        if (verbose != 4):
+            generatePNML(self, pnmlFileName)
         # PN graph
         PNGraphFile = logPath + '/' + self.name + '/'
         generatePNGraph(self, PNGraphFile)

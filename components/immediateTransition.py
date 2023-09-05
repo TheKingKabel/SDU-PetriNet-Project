@@ -1,6 +1,9 @@
 # components/immediateTransition.py module for Petri Net Project
 # contains class definition for object type Immediate Transition
 
+import inspect
+
+
 class ImmediateTransition:
     '''
     Class that represents an Immediate Transition object.
@@ -111,7 +114,12 @@ class ImmediateTransition:
             f"Immediate Transition\n"
             f"\tname: {self.name},\n"
             f"\tin Petri Net named: {self.petriNet.name},\n"
-            f"\twith guard function: {self.guard},\n"
+        )
+        if (self.guard is None):
+            returnString += f"\twith guard function: {self.guard},\n"
+        else:
+            returnString += f"\twith guard function: {str(' '.join(inspect.getsource(self.guard).split()))},\n"
+        returnString += (
             f"\twith firing possibility: {self.fireProbability},\n"
             f"\tcurrent firing times: {self.fireCount},\n"
             f"\tnumber of targeting Input Arcs: {len(self.inputArcs)},\n"
