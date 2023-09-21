@@ -10,11 +10,18 @@ class InhibArc:
         '''
         Constructor method of the Inhibitor Arc class.
         Arguments:
-            @param name: Name of the Inhibitor Arc, must be string, must be unique amongst Inhibitor Arc names in assigned Petri Net.
-            @param petriNet: Reference of parent Petri Net object for Inhibitor Arc to be assigned to, must be instance of class PetriNet.
-            @param origin: Origin/source object of the Inhibitor Arc, must be instance of class Place.
-            @param target: Target object of the Inhibitor Arc, must be instance of class Timed Transition or Immediate Transition.
-            @param multiplicity: Multiplicity of the Inhibitor Arc, must be integer and greater than 0, or reference to a callable function defined in the user file, returning integer value, i.e. "PetriNet.findPlaceByName("Queue").tokens". Default value: 1.
+            @param name: Name of the Inhibitor Arc, must be string, 
+                         must be unique amongst Inhibitor Arc names in assigned Petri Net.
+            @param petriNet: Reference of parent Petri Net object for Inhibitor Arc to be assigned to,
+                             must be instance of class PetriNet.
+            @param origin: Origin/source object of the Inhibitor Arc,
+                           must be instance of class Place.
+            @param target: Target object of the Inhibitor Arc, 
+                           must be instance of class Timed Transition or Immediate Transition.
+            @param multiplicity: Multiplicity of the Inhibitor Arc, must be integer and greater than 0,
+                                 or reference to a callable function defined in the user file,
+                                 returning integer value, i.e. "PetriNet.findPlaceByName("Queue").tokens".
+                                 Default value: 1.
         '''
 
         # Type checks

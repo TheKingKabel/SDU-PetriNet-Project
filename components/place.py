@@ -12,9 +12,14 @@ class Place:
         Arguments:
             @param name: Name of the Place, must be string, must be unique amongst Place names in assigned Petri Net.
             @param petriNet: Reference of parent Petri Net object for Place to be assigned to, must be instance of class PetriNet.
-            @param tokens (optional): Parameter used to define initial number of tokens held by Place, must be integer, must not be smaller than 0. Default value: 0.
-            @param totalTokens (optional): Parameter used to define initial total number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.
-            @param maxTokens (optional): Parameter used to define initial maximum number of tokens held by Place, used for statistics, must be integer, must not be smaller than 0. Default value: 0, if not set, but tokens is set: tokens.
+            @param tokens (optional): Parameter used to define initial number of tokens held by Place, must be integer, 
+                                      must not be smaller than 0. Default value: 0.
+            @param totalTokens (optional): Parameter used to define initial total number of tokens held by Place, 
+                                           used for statistics, must be integer, must not be smaller than 0. 
+                                           Default value: 0, if not set, but tokens is set: tokens.
+            @param maxTokens (optional): Parameter used to define initial maximum number of tokens held by Place, 
+                                         used for statistics, must be integer, must not be smaller than 0.
+                                         Default value: 0, if not set, but tokens is set: tokens.
         '''
 
         # Type checks

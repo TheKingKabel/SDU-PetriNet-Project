@@ -24,25 +24,23 @@ OUTTEnterPQueue = OutputArc("OUTTEnterPQueue", bank, TEnter, PQueue)
 OUTTWaitPService = OutputArc("OUTTWaitPService", bank, TWait, PService)
 
 INPPQueueTWait = InputArc("INPPQueueTWait", bank, PQueue, TWait)
-INPPServiceTService = InputArc("INPPServiceTService", bank, PService, TService)
+
+
+def getPServiceTokens():
+    if (PService.tokens == 0):
+        return 1
+    else:
+        return PService.tokens
+
+
+INServiceTService = InputArc(
+    "INServiceTService", bank, PService, TService, getPServiceTokens)
 
 INHPServiceTWait = InhibArc("INHPServiceTWait", bank, PService, TWait)
 
 # correct syntax of defining conditionals, callable functions returning boolean values
 # this way the function references can still be accessed from other modules,
 # as well as PN temporary (in-simulation) values evaluated dynamically
-
-
-def serverBusy():
-    return PService.tokens >= 1
-
-
-def bigQueue():
-    return PQueue.tokens >= 4
-
-
-def exactQueue():
-    return PQueue.tokens == 2
 
 
 # an advanced simulations method call
@@ -57,6 +55,20 @@ def exactQueue():
 # list[tuple1('conditional description', alpha value, function reference), tuple2(...),...]
 # type checks are implemented thoroughly,
 # invalid input will not execute but return Exception
+
+# conditional functions
+def serverBusy():
+    return PService.tokens >= 1
+
+
+def bigQueue():
+    return PQueue.tokens >= 4
+
+
+def exactQueue():
+    return PQueue.tokens == 2
+
+
 bank.runSimulations(10, 8, 1, 1337, defTimeUnit='hr', conditionals=[
                    ('Busy bank teller', .05, serverBusy),
                    ('Lot of customers', .10, bigQueue),

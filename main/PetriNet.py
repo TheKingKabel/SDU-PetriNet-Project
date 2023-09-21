@@ -422,18 +422,43 @@ class PetriNet:
                 return inhibArc
         raise Exception('Inhibitor Arc does not exists with name: ' + name)
 
-    def runSimulations(self, expLength: int, simLength: float, verbose: int = 2, randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
-        # TODO: verbose ?
+    def runSimulations(self, expLength: int, simLength: float, verbose: int = 2,
+                       randomSeed=None, defTimeUnit: str = 'sec', conditionals=None, logPath: str = './logs'):
         '''
         Method to run an experiment on the Petri Net.
         Arguments:
-            @param expLength: Number of repetitions for the experiment to run individual simulations. Must be integer, must be greater than 0.
-            @param simLength: Time length of simulations. Must be float, must not be smaller than 0.
-            @param verbose (optional): Verbosity of log displayed in terminal and file generation. Must be integer, must be 0, 1 or 2. If set to 0: low verbosity, no log is generated to terminal, only PN .pnml, PN graph, PN description, experiment log, and simulation .csv files are generated. If set to 1: medium verbosity, no log is generated to terminal, all files are generated. If set to 2: high verbosity, all logs are generated to terminal, all files are generated. Default value: 2. Debugging 4: does not generate .pnml file.
-            @param randomSeed (optional): Seed for the experiment to generate seeds for random choices and delay generations for individual simulation runs. Must be integer number between 0 and 2**32 - 1. Default value: randomly generated 32 bit sized integer value.
-            @param defTimeUnit (optional): Default time unit used in the simulations and result logs, must be chosen from predefined list. Generated Timed Transition delays with different assigned time units will be multiplied accordingly to match the default simulation time unit. Default value: 'sec' (seconds).
-            @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected. Must be a list of tuples, each containing a string name of the conditions (for logging) and references to callable functions defined in the user file, returning boolean value True or False, i.e. "PetriNet.findPlaceByName("Server").tokens >= 1". If not applicable, must be set to None. Default value: None.
-            @param logPath (optional): Path of the folder where the experiment result logs will be generated in (creates logs folder at destination). Default value: project root/logs/.
+            @param expLength: Number of repetitions for the experiment to run individual simulations.
+                              Must be integer, must be greater than 0.
+            @param simLength: Time length of simulations.
+                              Must be float, must not be smaller than 0.
+            @param verbose (optional): Verbosity of log displayed in terminal and file generation.
+                                       Must be integer, must be 0, 1 or 2.
+                                       If set to 0: low verbosity, no log is generated to terminal,
+                                       only PN .pnml, PN graph, PN description, experiment log,
+                                       and simulation .csv files are generated.
+                                       If set to 1: medium verbosity, no log is generated to terminal,
+                                       all files are generated.
+                                       If set to 2: high verbosity, all logs are generated to terminal,
+                                       all files are generated.
+                                       Default value: 2. Debugging 4: does not generate .pnml file.
+            @param randomSeed (optional): Seed for the experiment to generate seeds for random choices
+                                          and delay generations for individual simulation runs.
+                                          Must be integer number between 0 and 2**32 - 1.
+                                          Default value: randomly generated 32 bit sized integer value.
+            @param defTimeUnit (optional): Default time unit used in the simulations and result logs,
+                                           must be chosen from predefined list.
+                                           Generated Timed Transition delays with different assigned time units
+                                           will be multiplied accordingly to match the default simulation time unit.
+                                           Default value: 'sec' (seconds).
+            @param conditionals (optional): Specific states of the Petri Net where additional statistics is to be collected.
+                                            Must be a list of tuples, each containing a string name of the conditions (for logging)
+                                            and references to callable functions defined in the user file,
+                                            returning boolean value True or False,
+                                            i.e. "PetriNet.findPlaceByName("Server").tokens >= 1".
+                                            If not applicable, must be set to None.
+                                            Default value: None.
+            @param logPath (optional): Path of the folder where the experiment result logs will be generated in
+                                      (creates logs folder at destination). Default value: project root/logs/.
         '''
 
         # Type checking
@@ -682,7 +707,7 @@ class PetriNet:
         if (conditionals is not None):
             for id, condition in enumerate(conditionals):
 
-                t_val = scipy.stats.t.ppf(q=1-condition[1], df=expLength)
+                t_val = scipy.stats.t.ppf(q=1-condition[1]/2, df=expLength-1)
 
                 logText += "\n\t" + \
                     str(condition[0]) + ": " + str(t_val) + \
